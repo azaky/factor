@@ -25,30 +25,30 @@
   }
 </script>
 
-<div class="space-y-6">
+<div class="space-y-4">
   <div class="text-center">
-    <h2 class="text-2xl font-bold mb-2">High Scores</h2>
-    <p class="text-blue-200 text-sm capitalize">{gameMode} Mode</p>
+    <h2 class="text-xl font-bold mb-1">High Scores</h2>
+    <p class="text-blue-200 text-xs capitalize">{gameMode} Mode</p>
   </div>
 
-  <div class="bg-white/10 rounded-lg p-6">
+  <div class="bg-white/10 rounded-lg p-4">
     {#if scores.length === 0}
-      <div class="text-center py-8">
-        <p class="text-gray-400 text-lg mb-2">No high scores yet</p>
-        <p class="text-gray-500 text-sm">Play a game to set your first record!</p>
+      <div class="text-center py-6">
+        <p class="text-gray-400 text-base mb-1">No high scores yet</p>
+        <p class="text-gray-500 text-xs">Play a game to set your first record!</p>
       </div>
     {:else}
-      <div class="space-y-3">
+      <div class="space-y-2">
         {#each scores as score, index}
-          <div class="flex items-center justify-between p-3 bg-black/20 rounded-lg">
-            <div class="flex items-center space-x-3">
+          <div class="flex items-center justify-between p-2 bg-black/20 rounded-lg">
+            <div class="flex items-center space-x-2">
               <div
-                class="w-8 h-8 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center font-bold text-black text-sm"
+                class="w-6 h-6 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center font-bold text-black text-xs"
               >
                 {index + 1}
               </div>
               <div>
-                <div class="font-semibold text-white">
+                <div class="font-semibold text-white text-sm">
                   {score.score} rounds
                 </div>
                 <div class="text-xs text-gray-400">
@@ -65,9 +65,9 @@
         {/each}
       </div>
 
-      <div class="mt-6 pt-4 border-t border-gray-600">
+      <div class="mt-4 pt-3 border-t border-gray-600">
         <button
-          class="w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          class="w-full bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
           on:click={handleClearScores}
         >
           Clear All Scores
@@ -76,9 +76,9 @@
     {/if}
   </div>
 
-  <div class="flex gap-4">
+  <div class="flex gap-3">
     <button
-      class="flex-1 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition-colors"
+      class="flex-1 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
       on:click={handleBack}
     >
       Back to Menu

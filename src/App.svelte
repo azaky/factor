@@ -187,24 +187,24 @@
 </script>
 
 <main class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-  <div class="container mx-auto px-4 py-8 max-w-md">
+  <div class="container mx-auto px-3 py-4 max-w-md">
     {#if gameState === 'menu'}
-      <div class="text-center space-y-8">
-        <div class="mb-12">
+      <div class="text-center space-y-6">
+        <div class="mb-6">
           <h1
-            class="text-6xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+            class="text-4xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
           >
             Factor
           </h1>
-          <p class="text-xl text-blue-200 mt-4 font-medium">Prime factorization game</p>
+          <p class="text-lg text-blue-200 mt-2 font-medium">Prime factorization game</p>
           <div
-            class="w-16 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mt-4 rounded-full"
+            class="w-12 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mt-2 rounded-full"
           ></div>
         </div>
 
-        <div class="space-y-4">
+        <div class="space-y-3">
           <button
-            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-6 py-5 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-xl"
+            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-4 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-lg"
             on:click={startGame}
           >
             <div class="flex items-center justify-center space-x-2">
@@ -214,7 +214,7 @@
           </button>
 
           <button
-            class="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 px-6 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+            class="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 px-4 py-3 rounded-lg font-semibold text-base transition-all duration-300 transform hover:scale-105 shadow-lg"
             on:click={goToConfig}
           >
             <div class="flex items-center justify-center space-x-2">
@@ -224,7 +224,7 @@
           </button>
 
           <button
-            class="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 px-6 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+            class="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 px-4 py-3 rounded-lg font-semibold text-base transition-all duration-300 transform hover:scale-105 shadow-lg"
             on:click={goToHighScores}
           >
             <div class="flex items-center justify-center space-x-2">
@@ -234,8 +234,8 @@
           </button>
         </div>
 
-        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-          <div class="grid grid-cols-2 gap-4 text-sm">
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+          <div class="grid grid-cols-2 gap-3 text-sm">
             <div>
               <div class="text-blue-300 font-medium">Mode</div>
               <div class="font-bold capitalize">{gameConfig.gameMode}</div>
@@ -256,22 +256,22 @@
     {:else if gameState === 'highScores'}
       <HighScores gameMode={gameConfig.gameMode} on:back={() => (gameState = 'menu')} />
     {:else if gameState === 'playing'}
-      <div class="space-y-6">
+      <div class="space-y-4">
         <!-- Game Header -->
-        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-          <div class="grid grid-cols-3 gap-4 text-center">
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+          <div class="grid grid-cols-3 gap-3 text-center">
             <div>
-              <div class="text-sm text-blue-300 font-medium">Round</div>
-              <div class="text-2xl font-bold text-white">{currentGameState.currentRound}</div>
+              <div class="text-xs text-blue-300 font-medium">Round</div>
+              <div class="text-lg font-bold text-white">{currentGameState.currentRound}</div>
             </div>
             <div>
-              <div class="text-sm text-blue-300 font-medium">Score</div>
-              <div class="text-2xl font-bold text-green-400">{currentGameState.score}</div>
+              <div class="text-xs text-blue-300 font-medium">Score</div>
+              <div class="text-lg font-bold text-green-400">{currentGameState.score}</div>
             </div>
             <div>
-              <div class="text-sm text-blue-300 font-medium">Time</div>
+              <div class="text-xs text-blue-300 font-medium">Time</div>
               <div
-                class="text-2xl font-bold {Math.ceil(currentGameState.remainingTime) <= 5
+                class="text-lg font-bold {Math.ceil(currentGameState.remainingTime) <= 5
                   ? 'text-red-400 animate-pulse'
                   : 'text-yellow-400'}"
               >
@@ -283,28 +283,28 @@
 
         <!-- Current Number -->
         <div
-          class="bg-gradient-to-br from-indigo-500/20 to-purple-600/20 backdrop-blur-sm rounded-xl p-8 text-center border border-white/30 shadow-xl"
+          class="bg-gradient-to-br from-indigo-500/20 to-purple-600/20 backdrop-blur-sm rounded-lg p-4 text-center border border-white/30 shadow-lg"
         >
-          <p class="text-lg text-blue-200 mb-4 font-medium">Factor this number:</p>
+          <p class="text-sm text-blue-200 mb-2 font-medium">Factor this number:</p>
           <div
-            class="text-7xl font-black bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent mb-6"
+            class="text-5xl font-black bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent mb-3"
           >
             {currentGameState.currentNumber}
           </div>
-          <p class="text-sm text-blue-300">Enter prime factorization (e.g., 2^2*3)</p>
+          <p class="text-xs text-blue-300">Enter prime factorization (e.g., 2^2*3)</p>
         </div>
 
         <!-- Input Display -->
-        <div class="bg-black/40 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+        <div class="bg-black/40 backdrop-blur-sm rounded-lg p-4 border border-white/20">
           <div
-            class="text-right text-2xl font-mono min-h-[3rem] text-white flex items-center justify-end"
+            class="text-right text-xl font-mono min-h-[2.5rem] text-white flex items-center justify-end"
           >
             <span
               class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
             >
               {userInput || ''}
             </span>
-            <span class="w-0.5 h-8 bg-blue-400 ml-1 animate-pulse"></span>
+            <span class="w-0.5 h-6 bg-blue-400 ml-1 animate-pulse"></span>
           </div>
         </div>
 
@@ -312,12 +312,12 @@
         <Keypad on:input={e => handleKeypadInput(e.detail)} />
 
         <!-- Game Controls -->
-        <div class="flex gap-4">
+        <div class="flex gap-3">
           <button
-            class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 px-4 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+            class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 px-3 py-2 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-lg"
             on:click={goToMenu}
           >
-            <div class="flex items-center justify-center space-x-2">
+            <div class="flex items-center justify-center space-x-1">
               <span>🚪</span>
               <span>Quit</span>
             </div>
@@ -325,38 +325,38 @@
         </div>
       </div>
     {:else if gameState === 'gameOver'}
-      <div class="text-center space-y-8">
+      <div class="text-center space-y-4">
         <!-- Game Over Header -->
         <div class="relative">
           <h2
-            class="text-5xl font-black bg-gradient-to-r from-red-400 to-orange-500 bg-clip-text text-transparent"
+            class="text-3xl font-black bg-gradient-to-r from-red-400 to-orange-500 bg-clip-text text-transparent"
           >
             Game Over!
           </h2>
           {#if isNewHighScore}
-            <div class="absolute -top-4 -right-4 text-4xl animate-bounce">🎉</div>
+            <div class="absolute -top-2 -right-2 text-2xl animate-bounce">🎉</div>
           {/if}
         </div>
 
         {#if isNewHighScore}
           <div
-            class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/50 rounded-xl p-6 backdrop-blur-sm"
+            class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/50 rounded-lg p-4 backdrop-blur-sm"
           >
-            <div class="text-2xl font-bold text-yellow-300 mb-2">🏆 New High Score!</div>
-            <p class="text-yellow-200">Congratulations on your achievement!</p>
+            <div class="text-lg font-bold text-yellow-300 mb-1">🏆 New High Score!</div>
+            <p class="text-sm text-yellow-200">Congratulations on your achievement!</p>
           </div>
         {/if}
 
         <!-- Show Correct Answer -->
         {#if lastFailedNumber !== null}
-          <div class="bg-red-500/20 border border-red-400/50 rounded-xl p-6 backdrop-blur-sm">
+          <div class="bg-red-500/20 border border-red-400/50 rounded-lg p-4 backdrop-blur-sm">
             <div class="text-center">
-              <div class="text-lg font-bold text-red-300 mb-2">📚 Correct Answer</div>
-              <div class="text-sm text-red-200 mb-3">
+              <div class="text-base font-bold text-red-300 mb-1">📚 Correct Answer</div>
+              <div class="text-xs text-red-200 mb-2">
                 The correct factorization for {lastFailedNumber} was:
               </div>
               <div
-                class="text-2xl font-black bg-gradient-to-r from-red-300 to-orange-300 bg-clip-text text-transparent font-mono"
+                class="text-lg font-black bg-gradient-to-r from-red-300 to-orange-300 bg-clip-text text-transparent font-mono"
               >
                 {lastFailedNumber} = {getCorrectFactorization(lastFailedNumber)}
               </div>
@@ -365,28 +365,28 @@
         {/if}
 
         <!-- Score Display -->
-        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20 space-y-6">
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 space-y-4">
           <div class="text-center">
-            <div class="text-sm text-blue-300 font-medium mb-2">Final Score</div>
+            <div class="text-xs text-blue-300 font-medium mb-1">Final Score</div>
             <div
-              class="text-4xl font-black bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent"
+              class="text-3xl font-black bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent"
             >
               {currentGameState.score}
             </div>
-            <div class="text-sm text-blue-300">rounds completed</div>
+            <div class="text-xs text-blue-300">rounds completed</div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/20 text-center">
+          <div class="grid grid-cols-2 gap-3 pt-3 border-t border-white/20 text-center">
             <div>
-              <div class="text-sm text-blue-300 font-medium">Total Time</div>
-              <div class="text-xl font-bold text-white">
+              <div class="text-xs text-blue-300 font-medium">Total Time</div>
+              <div class="text-base font-bold text-white">
                 {formatTime(currentGameState.totalTime)}
               </div>
             </div>
             {#if currentGameState.score > 0}
               <div>
-                <div class="text-sm text-blue-300 font-medium">Average</div>
-                <div class="text-xl font-bold text-white">
+                <div class="text-xs text-blue-300 font-medium">Average</div>
+                <div class="text-base font-bold text-white">
                   {(currentGameState.totalTime / currentGameState.score).toFixed(1)}s
                 </div>
               </div>
@@ -395,9 +395,9 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="space-y-4">
+        <div class="space-y-3">
           <button
-            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-6 py-5 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-xl"
+            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-4 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-lg"
             on:click={startGame}
           >
             <div class="flex items-center justify-center space-x-2">
@@ -407,7 +407,7 @@
           </button>
 
           <button
-            class="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 px-6 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+            class="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 px-4 py-3 rounded-lg font-semibold text-base transition-all duration-300 transform hover:scale-105 shadow-lg"
             on:click={goToMenu}
           >
             <div class="flex items-center justify-center space-x-2">
