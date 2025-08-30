@@ -29,12 +29,13 @@ The deployment workflow triggers on:
 
 The workflow performs:
 
-1. **Code Quality Checks**:
+1. **Environment Setup**: Node.js 24 with npm caching
+2. **Code Quality Checks**:
    - TypeScript compilation (`npm run type-check`)
    - ESLint validation (`npm run lint:check`)
    - Prettier formatting check (`npm run format:check`)
-2. **Build**: Production build with Vite (`npm run build`)
-3. **Deploy**: Upload to GitHub Pages
+3. **Build**: Production build with Vite (`npm run build`)
+4. **Deploy**: Upload to GitHub Pages
 
 ### 5. Deployment URL
 

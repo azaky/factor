@@ -62,7 +62,7 @@ Score is based on:
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v18 or higher, v24 recommended)
 - npm or yarn
 
 ### Installation
