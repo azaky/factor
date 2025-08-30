@@ -50,9 +50,12 @@ Score is based on:
 
 ## Technology Stack
 
-- **Svelte**: Frontend framework
+- **Svelte**: Frontend framework for reactive UI
 - **Vite**: Build tool and dev server
-- **Tailwind CSS**: Styling and responsive design
+- **Tailwind CSS**: Utility-first CSS framework
+- **TypeScript**: Type safety and better development experience
+- **ESLint & Prettier**: Code quality and formatting
+- **GitHub Actions**: Automated deployment
 - **localStorage**: High score persistence
 
 ## Getting Started
@@ -80,21 +83,62 @@ npm run build
 
 # Preview production build
 npm run preview
+
+# Code quality commands
+npm run type-check    # TypeScript type checking
+npm run lint          # ESLint with auto-fix
+npm run lint:check    # ESLint check only
+npm run format        # Format with Prettier
+npm run format:check  # Check Prettier formatting
 ```
+
+## 🚀 Live Demo
+
+The game is automatically deployed to GitHub Pages: **[Play Factor Game](https://your-username.github.io/factor/)**
+
+### Deployment
+
+The project uses GitHub Actions for automated deployment:
+
+1. **Automatic**: Every push to `main` branch triggers deployment
+2. **Manual**: Can be triggered from the Actions tab
+3. **Quality Checks**: Runs TypeScript, ESLint, and Prettier checks before deployment
+
+#### Setting Up GitHub Pages
+
+1. Fork or clone this repository
+2. Go to repository **Settings** → **Pages**
+3. Set **Source** to "GitHub Actions"
+4. Update `vite.config.js` base path to match your repository name:
+   ```js
+   base: '/your-repo-name/', // Replace with your actual repo name
+   ```
+5. Push to `main` branch - deployment will start automatically
 
 ## Project Structure
 
 ```
 src/
 ├── lib/
-│   ├── gameLogic.js      # Core game logic and validation
-│   ├── highScores.js     # High score management
+│   ├── gameLogic.ts      # Core game logic and validation (TypeScript)
+│   ├── highScores.ts     # High score management (TypeScript)
 │   ├── GameConfig.svelte # Game settings component
 │   ├── Keypad.svelte     # Mobile-optimized input keypad
 │   └── HighScores.svelte # High scores display
 ├── App.svelte            # Main application component
 ├── main.js              # Application entry point
-└── app.css              # Global styles (Tailwind)
+└── app.css              # Global styles (Tailwind + custom)
+
+.github/
+└── workflows/
+    └── deploy.yml        # GitHub Actions deployment workflow
+
+Configuration:
+├── tsconfig.json         # TypeScript configuration
+├── tailwind.config.js    # Tailwind CSS configuration
+├── vite.config.js        # Vite build configuration
+├── .eslintrc.json        # ESLint configuration
+└── .prettierrc           # Prettier configuration
 ```
 
 ## Game Logic
