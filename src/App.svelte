@@ -1,6 +1,11 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { FactorGame, type GameConfig, type GameState, getCorrectFactorization } from './lib/gameLogic';
+  import {
+    FactorGame,
+    type GameConfig,
+    type GameState,
+    getCorrectFactorization,
+  } from './lib/gameLogic';
   import { addHighScore, getHighScores, formatTime, type ScoreEntry } from './lib/highScores';
   import GameConfigComponent from './lib/GameConfig.svelte';
   import Keypad from './lib/Keypad.svelte';
@@ -347,8 +352,12 @@
           <div class="bg-red-500/20 border border-red-400/50 rounded-xl p-6 backdrop-blur-sm">
             <div class="text-center">
               <div class="text-lg font-bold text-red-300 mb-2">📚 Correct Answer</div>
-              <div class="text-sm text-red-200 mb-3">The correct factorization for {lastFailedNumber} was:</div>
-              <div class="text-2xl font-black bg-gradient-to-r from-red-300 to-orange-300 bg-clip-text text-transparent font-mono">
+              <div class="text-sm text-red-200 mb-3">
+                The correct factorization for {lastFailedNumber} was:
+              </div>
+              <div
+                class="text-2xl font-black bg-gradient-to-r from-red-300 to-orange-300 bg-clip-text text-transparent font-mono"
+              >
                 {lastFailedNumber} = {getCorrectFactorization(lastFailedNumber)}
               </div>
             </div>

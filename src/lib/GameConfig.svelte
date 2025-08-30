@@ -3,19 +3,20 @@
   import type { GameConfig } from './gameLogic';
 
   export let config: GameConfig;
-  
+
   const dispatch = createEventDispatcher();
-  
+
   // Local copy of config for editing
   let localConfig: GameConfig = { ...config };
 
   function handleSave() {
     // Validate config before saving
     if (localConfig.startNumber < 1) localConfig.startNumber = 1;
-    if (localConfig.endNumber < localConfig.startNumber) localConfig.endNumber = localConfig.startNumber;
+    if (localConfig.endNumber < localConfig.startNumber)
+      localConfig.endNumber = localConfig.startNumber;
     if (localConfig.timeLimit < 5) localConfig.timeLimit = 5;
     if (localConfig.roundLimit && localConfig.roundLimit < 1) localConfig.roundLimit = 1;
-    
+
     dispatch('save', localConfig);
   }
 
@@ -35,15 +36,14 @@
   </div>
 
   <div class="bg-white/10 rounded-lg p-6 space-y-6">
-    
     <!-- Game Mode -->
     <div>
       <div class="block text-sm font-semibold mb-3">Game Mode</div>
       <div class="space-y-2">
         <label class="flex items-center space-x-3 cursor-pointer">
-          <input 
-            type="radio" 
-            bind:group={localConfig.gameMode} 
+          <input
+            type="radio"
+            bind:group={localConfig.gameMode}
             value="sequential"
             class="w-4 h-4 text-blue-600"
           />
@@ -52,11 +52,11 @@
             <div class="text-xs text-blue-200">Factor numbers in order (1, 2, 3...)</div>
           </div>
         </label>
-        
+
         <label class="flex items-center space-x-3 cursor-pointer">
-          <input 
-            type="radio" 
-            bind:group={localConfig.gameMode} 
+          <input
+            type="radio"
+            bind:group={localConfig.gameMode}
             value="random"
             class="w-4 h-4 text-blue-600"
           />
@@ -74,22 +74,22 @@
         <label for="startNumber" class="block text-sm font-semibold mb-2">
           {localConfig.gameMode === 'sequential' ? 'Start Number' : 'Min Number'}
         </label>
-        <input 
+        <input
           id="startNumber"
-          type="number" 
+          type="number"
           bind:value={localConfig.startNumber}
           min="1"
           class="w-full px-3 py-2 bg-black/30 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none"
         />
       </div>
-      
+
       <div>
         <label for="endNumber" class="block text-sm font-semibold mb-2">
           {localConfig.gameMode === 'sequential' ? 'End Number' : 'Max Number'}
         </label>
-        <input 
+        <input
           id="endNumber"
-          type="number" 
+          type="number"
           bind:value={localConfig.endNumber}
           min={localConfig.startNumber}
           class="w-full px-3 py-2 bg-black/30 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none"
@@ -100,9 +100,9 @@
     <!-- Time Limit -->
     <div>
       <label for="timeLimit" class="block text-sm font-semibold mb-2">Time Limit (seconds)</label>
-      <input 
+      <input
         id="timeLimit"
-        type="number" 
+        type="number"
         bind:value={localConfig.timeLimit}
         min="5"
         max="300"
@@ -115,14 +115,14 @@
       <div>
         <label for="randomSeed" class="block text-sm font-semibold mb-2">Random Seed</label>
         <div class="flex gap-2">
-          <input 
+          <input
             id="randomSeed"
-            type="number" 
+            type="number"
             bind:value={localConfig.randomSeed}
             disabled={localConfig.autoRandomSeed}
             class="flex-1 px-3 py-2 bg-black/30 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <button 
+          <button
             type="button"
             on:click={generateNewSeed}
             disabled={localConfig.autoRandomSeed}
@@ -150,7 +150,9 @@
           />
           <div>
             <div class="text-sm font-semibold">Auto Random Seed</div>
-            <div class="text-xs text-blue-200">Generate new seed automatically on each game restart</div>
+            <div class="text-xs text-blue-200">
+              Generate new seed automatically on each game restart
+            </div>
           </div>
         </label>
       </div>
@@ -160,29 +162,29 @@
         <div class="block text-sm font-semibold mb-3">Round Limit</div>
         <div class="space-y-2">
           <label class="flex items-center space-x-3 cursor-pointer">
-            <input 
-              type="radio" 
-              bind:group={localConfig.roundLimit} 
+            <input
+              type="radio"
+              bind:group={localConfig.roundLimit}
               value={null}
               class="w-4 h-4 text-blue-600"
             />
             <span>Endless (until wrong answer or timeout)</span>
           </label>
-          
+
           <label class="flex items-center space-x-3 cursor-pointer">
-            <input 
-              type="radio" 
-              bind:group={localConfig.roundLimit} 
+            <input
+              type="radio"
+              bind:group={localConfig.roundLimit}
               value={50}
               class="w-4 h-4 text-blue-600"
             />
             <span>50 rounds</span>
           </label>
-          
+
           <label class="flex items-center space-x-3 cursor-pointer">
-            <input 
-              type="radio" 
-              bind:group={localConfig.roundLimit} 
+            <input
+              type="radio"
+              bind:group={localConfig.roundLimit}
               value={100}
               class="w-4 h-4 text-blue-600"
             />
@@ -195,14 +197,14 @@
 
   <!-- Buttons -->
   <div class="flex gap-4">
-    <button 
+    <button
       class="flex-1 bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg font-semibold transition-colors"
       on:click={handleCancel}
     >
       Cancel
     </button>
-    
-    <button 
+
+    <button
       class="flex-1 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold transition-colors"
       on:click={handleSave}
     >

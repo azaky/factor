@@ -128,10 +128,10 @@ export function areFactorsEqual(factors1: FactorsMap, factors2: FactorsMap): boo
  */
 export function formatFactorization(factors: FactorsMap): string {
   if (factors[1]) return '1';
-  
+
   const terms: string[] = [];
-  
-    for (const [prime] of Object.entries(factors)) {
+
+  for (const [prime] of Object.entries(factors)) {
     const primeNum = parseInt(prime);
     const powerNum = factors[primeNum];
 
@@ -141,7 +141,7 @@ export function formatFactorization(factors: FactorsMap): string {
       terms.push(`${prime}^${powerNum}`);
     }
   }
-  
+
   return terms.join('*');
 }
 
