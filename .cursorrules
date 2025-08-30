@@ -1,0 +1,113 @@
+# Factor Game - Cursor Rules
+
+## Project Overview
+Factor is a web-based prime factorization game built with Svelte, Vite, and Tailwind CSS. Players must quickly enter prime factorizations of given numbers within time limits.
+
+## Architecture Guidelines
+
+### File Structure
+- `src/lib/gameLogic.js` - Core game mechanics, validation, and scoring
+- `src/lib/highScores.js` - Local storage high score management  
+- `src/lib/*.svelte` - Reusable UI components
+- `src/App.svelte` - Main application state and routing
+- `src/app.css` - Tailwind CSS imports only
+
+### Code Style
+- Use ES6+ features and modern JavaScript
+- Prefer functional programming patterns
+- Use Svelte reactive statements ($:) for derived state
+- Keep components focused on single responsibilities
+- Use Tailwind utility classes for styling
+
+### Game Logic Requirements
+- All factorization validation must be mathematically correct
+- Prime number checking must be efficient
+- Random number generation must be deterministic (seeded)
+- Time tracking must be precise to milliseconds
+- Game state must be immutable where possible
+
+### UI/UX Requirements
+- Mobile-first responsive design
+- Touch-friendly interface (minimum 44px touch targets)
+- Real-time timer updates
+- Clear visual feedback for correct/incorrect answers
+- Accessible keyboard navigation support
+
+## Development Rules
+
+### Component Guidelines
+1. **Props**: Always define export let for component props
+2. **Events**: Use createEventDispatcher for parent communication
+3. **Stores**: Avoid complex store patterns, use local state management
+4. **Styling**: Use Tailwind classes, avoid custom CSS unless necessary
+
+### Game Logic Rules
+1. **Validation**: Never trust user input, validate all factorizations
+2. **Performance**: Optimize prime checking for numbers up to 10,000
+3. **Accuracy**: Use integer math to avoid floating point errors
+4. **Determinism**: Random games must be reproducible with same seed
+
+### Data Management
+1. **localStorage**: All high scores stored locally with error handling
+2. **State**: Game state should be serializable for save/restore
+3. **Configuration**: All game settings must be user-configurable
+4. **Persistence**: Handle localStorage quota limits gracefully
+
+## Feature Requirements
+
+### Core Game Features
+- [x] Prime factorization validation
+- [x] Sequential and random game modes
+- [x] Configurable time limits
+- [x] Mobile-optimized keypad
+- [x] High score tracking
+- [x] Real-time timer display
+
+### Input Validation Rules
+- Accept formats: "2^3*5", "2*2*2*5", "5*2^3"
+- Reject non-prime factors: "4*3", "6*2"
+- Special case: "1" for number 1
+- Case insensitive parsing
+- Whitespace tolerant
+
+### Game Mode Specifications
+- **Sequential**: Start→End range, complete when reaching end
+- **Random**: Min→Max range, deterministic seed, optional round limit
+- **Scoring**: Rounds completed + total time + average time per round
+
+## Testing Guidelines
+
+### Manual Testing Checklist
+- [ ] Correct factorizations accepted
+- [ ] Incorrect factorizations rejected  
+- [ ] Timer counts down correctly
+- [ ] Game ends on timeout
+- [ ] High scores save/load properly
+- [ ] Mobile keypad works on touch devices
+- [ ] Settings persist between sessions
+
+### Edge Cases to Test
+- Number 1 (special case)
+- Large prime numbers
+- Perfect squares
+- Numbers with many factors
+- Invalid input formats
+- localStorage full/unavailable
+
+## Performance Requirements
+- Prime checking up to 10,000 must be < 1ms
+- UI updates at 60fps minimum
+- Bundle size < 100KB gzipped
+- Time to interactive < 2 seconds
+
+## Browser Support
+- Modern evergreen browsers (Chrome, Firefox, Safari, Edge)
+- Mobile browsers (iOS Safari, Chrome Mobile)
+- Requires ES6+ support
+- Requires localStorage support
+
+## Deployment
+- Build with `npm run build`
+- Serve static files from `dist/` directory
+- No server-side requirements
+- CDN-friendly static assets
