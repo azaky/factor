@@ -28,12 +28,12 @@
 
   // Game configuration
   let gameConfig: GameConfig = {
-    gameMode: 'sequential',
-    startNumber: 1,
-    endNumber: 100,
+    gameMode: 'random',
+    startNumber: 100,
+    endNumber: 999,
     timeLimit: 30,
     randomSeed: Date.now(),
-    autoRandomSeed: false,
+    autoRandomSeed: true,
     roundLimit: null,
   };
 
