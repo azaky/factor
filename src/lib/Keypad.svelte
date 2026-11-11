@@ -1,44 +1,79 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  let { onkey }: { onkey: (key: string) => void } = $props();
 
-  const dispatch = createEventDispatcher();
-
-  const buttons: string[][] = [
-    ['1', '2', '3'],
-    ['4', '5', '6'],
-    ['7', '8', '9'],
-    ['*', '0', '^'],
-    ['⌫', 'Enter'],
+  // Layout (4 columns):
+  //   7 8 9 ⌫
+  //   4 5 6 ×
+  //   1 2 3 ^
+  //   0 0 ↵ ↵
+  const keys: { key: string; label: string; cls?: string }[] = [
+    { key: '7', label: '7' },
+    { key: '8', label: '8' },
+    { key: '9', label: '9' },
+    { key: 'Backspace', label: '⌫', cls: 'op' },
+    { key: '4', label: '4' },
+    { key: '5', label: '5' },
+    { key: '6', label: '6' },
+    { key: '*', label: '×', cls: 'op' },
+    { key: '1', label: '1' },
+    { key: '2', label: '2' },
+    { key: '3', label: '3' },
+    { key: '^', label: 'xⁿ', cls: 'op' },
+    { key: '0', label: '0', cls: 'wide' },
+    { key: 'Enter', label: 'Enter', cls: 'wide enter' },
   ];
-
-  function handleButtonClick(value: string): void {
-    if (value === '⌫') {
-      dispatch('input', 'backspace');
-    } else if (value === 'Enter') {
-      dispatch('input', 'enter');
-    } else {
-      dispatch('input', value);
-    }
-  }
 </script>
 
-<div class="grid gap-2 mt-3">
-  {#each buttons as row}
-    <div class="grid gap-2" style="grid-template-columns: repeat({row.length}, 1fr);">
-      {#each row as button}
-        <button
-          class="h-12 min-h-[48px] rounded-lg font-bold text-lg transition-all duration-200 select-none shadow-md backdrop-blur-sm border border-white/20
-                 {button === 'Enter'
-            ? 'bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-green-500/30'
-            : button === '⌫'
-              ? 'bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-red-500/30'
-              : 'bg-gradient-to-br from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white shadow-slate-700/30'}
-                 active:scale-95 hover:scale-105 hover:shadow-lg transform touch-manipulation"
-          on:click={() => handleButtonClick(button)}
-        >
-          {button}
-        </button>
-      {/each}
-    </div>
+<div class="keypad">
+  {#each keys as k (k.key)}
+    <button
+      type="button"
+      class="key {k.cls ?? ''}"
+      aria-label={k.key}
+      onpointerdown={e => {
+        e.preventDefault();
+        onkey(k.key);
+      }}
+      onclick={e => {
+        // keyboard activation (Enter/Space on a focused key); pointer is handled above
+        if (e.detail === 0) onkey(k.key);
+      }}>{k.label}</button
+    >
   {/each}
 </div>
+
+<style>
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .key {
+    height: clamp(48px, 8dvh, 64px);
+    border-radius: var(--radius);
+    background: var(--key);
+    font-size: 22px;
+    font-family: var(--mono);
+  }
+  .key:active {
+    background: var(--key-active);
+  }
+  .op {
+    color: var(--muted);
+    font-size: 20px;
+  }
+  .wide {
+    grid-column: span 2;
+  }
+  .enter {
+    background: var(--fg);
+    color: var(--bg);
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .enter:active {
+    background: var(--fg);
+    opacity: 0.85;
+  }
+</style>

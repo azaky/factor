@@ -1,422 +1,212 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import {
-    FactorGame,
-    type GameConfig,
-    type GameState,
-    getCorrectFactorization,
-  } from './lib/gameLogic';
-  import { addHighScore, getHighScores, formatTime, type ScoreEntry } from './lib/highScores';
-  import GameConfigComponent from './lib/GameConfig.svelte';
-  import Keypad from './lib/Keypad.svelte';
-  import HighScores from './lib/HighScores.svelte';
+  import { answerFor, type Result, type Settings } from './lib/game';
+  import { addScore, boardLabel, formatTime, loadSettings, saveSettings } from './lib/storage';
+  import Expr from './lib/Expr.svelte';
+  import Play from './lib/Play.svelte';
+  import SettingsView from './lib/SettingsView.svelte';
+  import ScoresView from './lib/ScoresView.svelte';
 
-  let gameState: 'menu' | 'config' | 'playing' | 'gameOver' | 'highScores' = 'menu';
-  let game: FactorGame | null = null;
-  let userInput: string = '';
-  let currentGameState: GameState = {
-    currentRound: 0,
-    currentNumber: 0,
-    score: 0,
-    totalTime: 0,
-    gameOver: false,
-    remainingTime: 0,
+  type View = 'menu' | 'play' | 'over' | 'settings' | 'scores';
+
+  let view = $state<View>('menu');
+  let settings = $state<Settings>(loadSettings());
+  let result = $state<Result | null>(null);
+  let rank = $state(-1);
+  let gameId = $state(0);
+
+  function play() {
+    gameId++;
+    view = 'play';
+  }
+
+  function end(r: Result) {
+    if (r.reason === 'quit') {
+      view = 'menu';
+      return;
+    }
+    result = r;
+    rank =
+      r.rounds > 0
+        ? addScore({
+            rounds: r.rounds,
+            time: r.time,
+            date: Date.now(),
+            settings: $state.snapshot(settings),
+          })
+        : -1;
+    view = 'over';
+  }
+
+  function saveSettingsAndBack(s: Settings) {
+    settings = s;
+    saveSettings(s);
+    view = 'menu';
+  }
+
+  const reasonText: Record<string, string> = {
+    wrong: 'Wrong answer',
+    timeout: "Time's up",
+    complete: 'All rounds complete',
   };
-  let timer: ReturnType<typeof setInterval> | null = null;
-  let isNewHighScore: boolean = false;
-  let lastFailedNumber: number | null = null;
-
-  // Game configuration
-  let gameConfig: GameConfig = {
-    gameMode: 'random',
-    startNumber: 100,
-    endNumber: 999,
-    timeLimit: 30,
-    randomSeed: Date.now(),
-    autoRandomSeed: true,
-    roundLimit: null,
-  };
-
-  onMount(() => {
-    // Initialize with default config
-    updateGameState();
-
-    // Add keyboard event listener
-    window.addEventListener('keydown', handleKeydown);
-  });
-
-  onDestroy(() => {
-    if (timer) {
-      clearInterval(timer);
-    }
-
-    // Remove keyboard event listener
-    window.removeEventListener('keydown', handleKeydown);
-  });
-
-  function handleKeydown(event: KeyboardEvent): void {
-    // Only handle keyboard input during gameplay
-    if (gameState !== 'playing') return;
-
-    const key = event.key;
-
-    // Prevent default behavior for keys we handle
-    if (/^[0-9*^]$/.test(key) || key === 'Backspace' || key === 'Enter') {
-      event.preventDefault();
-    }
-
-    // Handle number keys
-    if (/^[0-9]$/.test(key)) {
-      handleKeypadInput(key);
-    }
-    // Handle operators
-    else if (key === '*') {
-      handleKeypadInput('*');
-    } else if (key === '^' || (key === '6' && event.shiftKey)) {
-      // ^ or Shift+6
-      handleKeypadInput('^');
-    }
-    // Handle backspace
-    else if (key === 'Backspace') {
-      handleKeypadInput('backspace');
-    }
-    // Handle enter
-    else if (key === 'Enter') {
-      handleKeypadInput('enter');
-    }
-  }
-
-  function startGame(): void {
-    game = new FactorGame(gameConfig);
-    gameState = 'playing';
-    userInput = '';
-    isNewHighScore = false;
-    lastFailedNumber = null;
-    startNewRound();
-  }
-
-  function startNewRound(): void {
-    game.startRound();
-    updateGameState();
-
-    // Start timer for real-time updates
-    timer = setInterval(() => {
-      if (!game.checkTimeLimit()) {
-        endGame();
-      }
-      updateGameState();
-    }, 100);
-  }
-
-  function updateGameState(): void {
-    if (game) {
-      currentGameState = game.getGameState();
-    }
-  }
-
-  function submitAnswer(): void {
-    if (!game || gameState !== 'playing' || !userInput.trim()) return;
-
-    const success = game.submitAnswer(userInput);
-    userInput = '';
-
-    if (game.gameOver) {
-      endGame();
-    } else if (success) {
-      // Continue to next round
-      startNewRound();
-    }
-  }
-
-  function endGame(): void {
-    if (timer) {
-      clearInterval(timer);
-      timer = null;
-    }
-
-    updateGameState();
-
-    // Capture the last failed number for showing correct factorization
-    lastFailedNumber = currentGameState.currentNumber;
-
-    // Check for high score
-    if (currentGameState.score > 0) {
-      const scoreData = {
-        score: currentGameState.score,
-        totalTime: currentGameState.totalTime,
-        gameMode: gameConfig.gameMode,
-        config: { ...gameConfig },
-      };
-
-      isNewHighScore = addHighScore(gameConfig.gameMode, scoreData);
-    }
-
-    gameState = 'gameOver';
-  }
-
-  function handleKeypadInput(value: string): void {
-    if (value === 'backspace') {
-      userInput = userInput.slice(0, -1);
-    } else if (value === 'enter') {
-      submitAnswer();
-    } else {
-      userInput += value;
-    }
-  }
-
-  function goToMenu(): void {
-    gameState = 'menu';
-    if (timer) {
-      clearInterval(timer);
-      timer = null;
-    }
-  }
-
-  function goToConfig(): void {
-    gameState = 'config';
-  }
-
-  function goToHighScores(): void {
-    gameState = 'highScores';
-  }
-
-  function handleConfigSave(config: GameConfig): void {
-    gameConfig = { ...config };
-    gameState = 'menu';
-  }
 </script>
 
-<main class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-  <div class="container mx-auto px-3 py-4 max-w-md">
-    {#if gameState === 'menu'}
-      <div class="text-center space-y-6">
-        <div class="mb-6">
-          <h1
-            class="text-4xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
-          >
-            Factor
-          </h1>
-          <p class="text-lg text-blue-200 mt-2 font-medium">Prime factorization game</p>
-          <div
-            class="w-12 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mt-2 rounded-full"
-          ></div>
-        </div>
+<svelte:window
+  onkeydown={e => {
+    if ((view === 'menu' || view === 'over') && e.key === 'Enter') {
+      e.preventDefault();
+      play();
+    }
+  }}
+/>
 
-        <div class="space-y-3">
-          <button
-            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-4 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-lg"
-            on:click={startGame}
-          >
-            <div class="flex items-center justify-center space-x-2">
-              <span>🎯</span>
-              <span>Start Game</span>
-            </div>
-          </button>
+{#if view === 'play'}
+  {#key gameId}
+    <Play {settings} onend={end} />
+  {/key}
+{:else if view === 'settings'}
+  <SettingsView {settings} onsave={saveSettingsAndBack} oncancel={() => (view = 'menu')} />
+{:else if view === 'scores'}
+  <ScoresView {settings} onback={() => (view = 'menu')} />
+{:else if view === 'over' && result}
+  <div class="screen">
+    <div class="screen-body center">
+      <p class="label">{reasonText[result.reason]}</p>
+      <div class="big mono">{result.rounds}</div>
+      <p class="sub">
+        {result.rounds === 1 ? 'round' : 'rounds'}
+        {#if result.rounds > 0}
+          · {formatTime(result.time)} · {(result.time / result.rounds).toFixed(1)}s avg
+        {/if}
+      </p>
+      {#if rank === 0}
+        <p class="badge">New best</p>
+      {:else if rank > 0}
+        <p class="badge">#{rank + 1} on the board</p>
+      {/if}
 
-          <button
-            class="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 px-4 py-3 rounded-lg font-semibold text-base transition-all duration-300 transform hover:scale-105 shadow-lg"
-            on:click={goToConfig}
-          >
-            <div class="flex items-center justify-center space-x-2">
-              <span>⚙️</span>
-              <span>Settings</span>
-            </div>
-          </button>
-
-          <button
-            class="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 px-4 py-3 rounded-lg font-semibold text-base transition-all duration-300 transform hover:scale-105 shadow-lg"
-            on:click={goToHighScores}
-          >
-            <div class="flex items-center justify-center space-x-2">
-              <span>🏆</span>
-              <span>High Scores</span>
-            </div>
-          </button>
-        </div>
-
-        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-          <div class="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <div class="text-blue-300 font-medium">Mode</div>
-              <div class="font-bold capitalize">{gameConfig.gameMode}</div>
-            </div>
-            <div>
-              <div class="text-blue-300 font-medium">Time Limit</div>
-              <div class="font-bold">{gameConfig.timeLimit}s</div>
-            </div>
+      {#if result.reason !== 'complete' && result.lastNumber !== null}
+        <dl>
+          <div>
+            <dt>Answer</dt>
+            <dd class="mono">
+              {result.lastNumber} = <Expr value={answerFor(result.lastNumber)} />
+            </dd>
           </div>
-        </div>
-      </div>
-    {:else if gameState === 'config'}
-      <GameConfigComponent
-        config={gameConfig}
-        on:save={e => handleConfigSave(e.detail)}
-        on:cancel={() => (gameState = 'menu')}
-      />
-    {:else if gameState === 'highScores'}
-      <HighScores gameMode={gameConfig.gameMode} on:back={() => (gameState = 'menu')} />
-    {:else if gameState === 'playing'}
-      <div class="space-y-4">
-        <!-- Game Header -->
-        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-          <div class="grid grid-cols-3 gap-3 text-center">
+          {#if result.lastInput}
             <div>
-              <div class="text-xs text-blue-300 font-medium">Round</div>
-              <div class="text-lg font-bold text-white">{currentGameState.currentRound}</div>
+              <dt>You</dt>
+              <dd class="mono wrong"><Expr value={result.lastInput} /></dd>
             </div>
-            <div>
-              <div class="text-xs text-blue-300 font-medium">Score</div>
-              <div class="text-lg font-bold text-green-400">{currentGameState.score}</div>
-            </div>
-            <div>
-              <div class="text-xs text-blue-300 font-medium">Time</div>
-              <div
-                class="text-lg font-bold {Math.ceil(currentGameState.remainingTime) <= 5
-                  ? 'text-red-400 animate-pulse'
-                  : 'text-yellow-400'}"
-              >
-                {Math.ceil(currentGameState.remainingTime)}s
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Current Number -->
-        <div
-          class="bg-gradient-to-br from-indigo-500/20 to-purple-600/20 backdrop-blur-sm rounded-lg p-4 text-center border border-white/30 shadow-lg"
-        >
-          <p class="text-sm text-blue-200 mb-2 font-medium">Factor this number:</p>
-          <div
-            class="text-5xl font-black bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent mb-3"
-          >
-            {currentGameState.currentNumber}
-          </div>
-          <p class="text-xs text-blue-300">Enter prime factorization (e.g., 2^2*3)</p>
-        </div>
-
-        <!-- Input Display -->
-        <div class="bg-black/40 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-          <div
-            class="text-right text-xl font-mono min-h-[2.5rem] text-white flex items-center justify-end"
-          >
-            <span
-              class="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
-            >
-              {userInput || ''}
-            </span>
-            <span class="w-0.5 h-6 bg-blue-400 ml-1 animate-pulse"></span>
-          </div>
-        </div>
-
-        <!-- Keypad -->
-        <Keypad on:input={e => handleKeypadInput(e.detail)} />
-
-        <!-- Game Controls -->
-        <div class="flex gap-3">
-          <button
-            class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 px-3 py-2 rounded-lg font-semibold text-sm transition-all duration-300 transform hover:scale-105 shadow-lg"
-            on:click={goToMenu}
-          >
-            <div class="flex items-center justify-center space-x-1">
-              <span>🚪</span>
-              <span>Quit</span>
-            </div>
-          </button>
-        </div>
-      </div>
-    {:else if gameState === 'gameOver'}
-      <div class="text-center space-y-4">
-        <!-- Game Over Header -->
-        <div class="relative">
-          <h2
-            class="text-3xl font-black bg-gradient-to-r from-red-400 to-orange-500 bg-clip-text text-transparent"
-          >
-            Game Over!
-          </h2>
-          {#if isNewHighScore}
-            <div class="absolute -top-2 -right-2 text-2xl animate-bounce">🎉</div>
           {/if}
-        </div>
-
-        {#if isNewHighScore}
-          <div
-            class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-400/50 rounded-lg p-4 backdrop-blur-sm"
-          >
-            <div class="text-lg font-bold text-yellow-300 mb-1">🏆 New High Score!</div>
-            <p class="text-sm text-yellow-200">Congratulations on your achievement!</p>
-          </div>
-        {/if}
-
-        <!-- Show Correct Answer -->
-        {#if lastFailedNumber !== null}
-          <div class="bg-red-500/20 border border-red-400/50 rounded-lg p-4 backdrop-blur-sm">
-            <div class="text-center">
-              <div class="text-base font-bold text-red-300 mb-1">📚 Correct Answer</div>
-              <div class="text-xs text-red-200 mb-2">
-                The correct factorization for {lastFailedNumber} was:
-              </div>
-              <div
-                class="text-lg font-black bg-gradient-to-r from-red-300 to-orange-300 bg-clip-text text-transparent font-mono"
-              >
-                {lastFailedNumber} = {getCorrectFactorization(lastFailedNumber)}
-              </div>
-            </div>
-          </div>
-        {/if}
-
-        <!-- Score Display -->
-        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20 space-y-4">
-          <div class="text-center">
-            <div class="text-xs text-blue-300 font-medium mb-1">Final Score</div>
-            <div
-              class="text-3xl font-black bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent"
-            >
-              {currentGameState.score}
-            </div>
-            <div class="text-xs text-blue-300">rounds completed</div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3 pt-3 border-t border-white/20 text-center">
-            <div>
-              <div class="text-xs text-blue-300 font-medium">Total Time</div>
-              <div class="text-base font-bold text-white">
-                {formatTime(currentGameState.totalTime)}
-              </div>
-            </div>
-            {#if currentGameState.score > 0}
-              <div>
-                <div class="text-xs text-blue-300 font-medium">Average</div>
-                <div class="text-base font-bold text-white">
-                  {(currentGameState.totalTime / currentGameState.score).toFixed(1)}s
-                </div>
-              </div>
-            {/if}
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="space-y-3">
-          <button
-            class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-4 py-3 rounded-lg font-bold text-base transition-all duration-300 transform hover:scale-105 shadow-lg"
-            on:click={startGame}
-          >
-            <div class="flex items-center justify-center space-x-2">
-              <span>🎯</span>
-              <span>Play Again</span>
-            </div>
-          </button>
-
-          <button
-            class="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 px-4 py-3 rounded-lg font-semibold text-base transition-all duration-300 transform hover:scale-105 shadow-lg"
-            on:click={goToMenu}
-          >
-            <div class="flex items-center justify-center space-x-2">
-              <span>🏠</span>
-              <span>Main Menu</span>
-            </div>
-          </button>
-        </div>
-      </div>
-    {/if}
+        </dl>
+      {/if}
+    </div>
+    <footer class="screen-footer">
+      <button type="button" class="btn" onclick={() => (view = 'menu')}>Menu</button>
+      <button type="button" class="btn btn-primary" onclick={play}>Play again</button>
+    </footer>
   </div>
-</main>
+{:else}
+  <div class="screen">
+    <div class="screen-body center">
+      <h1>Factor</h1>
+      <p class="sub">Break each number into prime powers.</p>
+      <p class="example mono">360 = <Expr value="2^3*3^2*5" /></p>
+    </div>
+    <p class="config label">{boardLabel(settings)}</p>
+    <footer class="screen-footer stack">
+      <button type="button" class="btn btn-primary" onclick={play}>Play</button>
+      <div class="pair">
+        <button type="button" class="btn" onclick={() => (view = 'settings')}>Settings</button>
+        <button type="button" class="btn" onclick={() => (view = 'scores')}>Scores</button>
+      </div>
+    </footer>
+  </div>
+{/if}
+
+<style>
+  .center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  h1 {
+    margin: 0;
+    font-size: 44px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+  .sub {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .example {
+    margin: 32px 0 0;
+    font-size: 20px;
+  }
+  .config {
+    text-align: center;
+    margin: 0;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 13px;
+  }
+  .stack {
+    flex-direction: column;
+  }
+  .stack > * {
+    flex: none;
+  }
+  .pair {
+    display: flex;
+    gap: 8px;
+  }
+  .pair > * {
+    flex: 1;
+  }
+  .big {
+    font-size: 88px;
+    font-weight: 600;
+    line-height: 1;
+    margin-top: 12px;
+    letter-spacing: -0.03em;
+  }
+  .badge {
+    margin: 16px 0 0;
+    padding: 4px 10px;
+    border: 1px solid var(--faint);
+    border-radius: 999px;
+    font-size: 13px;
+  }
+  dl {
+    margin: 40px 0 0;
+    width: 100%;
+    border-top: 1px solid var(--faint);
+  }
+  dl > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--faint);
+  }
+  dt {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  dd {
+    margin: 0;
+    font-size: 18px;
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+  .wrong {
+    color: var(--danger);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+  }
+</style>
