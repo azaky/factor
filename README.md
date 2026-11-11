@@ -10,36 +10,39 @@ A web-based factorization game where players must quickly enter the prime factor
 - First powers can be explicit (3^1*2^2) or implicit (3*2^2)
 - Exception: for the number 1, entering "1" is acceptable
 - Invalid formats: 6*2, 4*3, 2*2*3, 1*2^2*3 (non-prime factors)
-- Time limit: 30 seconds per round (configurable)
 
 ## Game Modes
 
-### Sequential Mode
+### Daily
 
-- Numbers increment from a starting to ending number
-- Configurable range (e.g., 1 to 100)
-- Game ends when reaching the end number
+- The same 10 numbers for everyone on a given date, getting harder through the set and ending with a "boss" (a product of two two-digit primes)
+- Numbers come from a seed derived from the local date, so it needs no server
+- Timed with a stopwatch; a wrong answer adds 10s and you retry the same number
+- One attempt per day: starting counts, so quitting can't be used to preview the numbers
+- Tracks your streak, shows the day's answers afterwards, and has a Share button
 
-### Random Mode
+### Blitz
 
-- Random numbers within a configurable range
-- Optional fixed seed for repeatable games (otherwise a new seed each game)
-- Can be endless (sudden death) or have round limits
-- Configurable between any two numbers (e.g., 1000-9999)
+- 60 seconds for the whole run; solve as many as you can
+- Each correct answer adds 2s; a wrong answer costs 5s and moves on to the next number
+- Two-digit numbers at first, then three digits
 
-## Scoring
+### Climb
 
-Score is based on:
+- Each level adds difficulty: numbers grow by one digit every 10 levels (10–100 → 100–1000 → …)
+- Time per number shrinks from 30s to 15s by level 30
+- A wrong answer or a timeout ends the run; your score is the number of levels cleared
 
-- Number of rounds completed
-- Total time taken to complete rounds
-- Average time per round
+### Classic
+
+- Configurable: sequential or random order, number range, seconds per round, round limit and an optional fixed seed
+- A wrong answer or a timeout ends the game
 
 ## Features
 
 - **Fits the screen**: The game screen fills the viewport (no scrolling) on phones and desktop
 - **High Scores**: Local storage saves top 10 scores per game mode
-- **Configurable Settings**:
+- **Configurable Classic mode**:
   - Game mode (sequential/random)
   - Number ranges
   - Time limits
@@ -118,13 +121,16 @@ The project uses GitHub Actions for automated deployment:
 src/
 ├── lib/
 │   ├── game.ts               # Factorization, validation, seeded number source, settings
+│   ├── modes.ts              # Rules for Daily, Blitz, Climb and Classic; difficulty curve
 │   ├── storage.ts            # Settings + high scores (localStorage)
-│   ├── Play.svelte           # Game screen (timer, input, keypad)
+│   ├── Play.svelte           # Game screen; runs any mode's rules
+│   ├── GameOver.svelte       # Result screen for Blitz, Climb and Classic
+│   ├── DailyResult.svelte    # Daily result, streak, answers, share
 │   ├── Keypad.svelte         # On-screen keypad
 │   ├── Expr.svelte           # Renders 2^3*5 as 2³ × 5
-│   ├── SettingsView.svelte   # Settings screen
+│   ├── SettingsView.svelte   # Classic settings
 │   └── ScoresView.svelte     # High scores screen
-├── App.svelte                # Screen routing, menu, game-over
+├── App.svelte                # Screen routing and the mode menu
 ├── main.ts                   # Entry point
 └── app.css                   # Design tokens and shared layout styles
 ```
@@ -132,9 +138,9 @@ src/
 ## Controls
 
 - On-screen keypad, or the physical keyboard: digits, `*` (or `x`), `^`, Backspace, Enter
-- Esc quits a running game; Enter starts a new game from the menu or game-over screen
+- Esc quits a running game; Enter plays again from the game-over screen
 
-High scores are kept per combination of mode, range, time limit and round limit.
+Blitz and Climb each have one high-score board. Classic keeps a separate board for each combination of settings.
 
 ## License
 

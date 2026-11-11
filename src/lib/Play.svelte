@@ -1,58 +1,110 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { check, numberSource, type EndReason, type Result, type Settings } from './game';
+  import { check } from './game';
+  import type { EndReason, Result, Rules } from './modes';
   import Expr from './Expr.svelte';
   import Keypad from './Keypad.svelte';
 
-  let {
-    settings,
-    onend,
-  }: {
-    settings: Settings;
-    onend: (result: Result) => void;
-  } = $props();
+  let { rules, onend }: { rules: Rules; onend: (result: Result) => void } = $props();
 
-  const seed = settings.seed ?? Math.floor(Math.random() * 2 ** 32);
-  const next = numberSource(settings, seed);
+  // svelte-ignore state_referenced_locally
+  const { clock, onWrong, next, label } = rules;
 
-  let current = $state<number | null>(next());
-  let round = $state(1);
+  let solved = $state(0);
+  let misses = $state(0);
+  let current = $state<number | null>(next(0));
   let input = $state('');
-  let solvedTime = 0;
-  let roundStart = performance.now();
-  let now = $state(performance.now());
   let shake = $state(false);
+  let flash = $state<{ text: string; id: number } | null>(null);
+
+  const gameStart = performance.now();
+  let roundStart = gameStart;
+  let now = $state(gameStart);
+  let adjust = $state(0); // seconds added to the clock (bonus) or the score (penalty)
+  let solveTime = 0;
   let done = false;
 
-  let remaining = $derived(Math.max(0, settings.timeLimit - (now - roundStart) / 1000));
-  let fraction = $derived(remaining / settings.timeLimit);
+  let roundLimit = $derived(clock.kind === 'round' ? clock.seconds(solved) : 0);
+  let remaining = $derived(
+    clock.kind === 'round'
+      ? roundLimit - (now - roundStart) / 1000
+      : clock.kind === 'total'
+        ? clock.seconds + adjust - (now - gameStart) / 1000
+        : Infinity
+  );
+  let elapsed = $derived((now - gameStart) / 1000 + (clock.kind === 'stopwatch' ? adjust : 0));
+
+  let timeText = $derived(
+    clock.kind === 'stopwatch' ? elapsed.toFixed(1) : `${Math.max(0, Math.ceil(remaining))}`
+  );
+  let low = $derived(remaining <= 5);
+  let fraction = $derived(
+    clock.kind === 'round'
+      ? remaining / roundLimit
+      : clock.kind === 'total'
+        ? remaining / clock.seconds
+        : solved / (rules.total ?? 1)
+  );
 
   function finish(reason: EndReason) {
     if (done) return;
     done = true;
-    onend({ reason, rounds: round - 1, time: solvedTime, lastNumber: current, lastInput: input });
+    onend({
+      mode: rules.mode,
+      reason,
+      solved,
+      misses,
+      solveTime,
+      elapsed: (performance.now() - gameStart) / 1000 + (clock.kind === 'stopwatch' ? adjust : 0),
+      lastNumber: current,
+      lastInput: input,
+    });
   }
 
-  function submit() {
-    if (!input || current === null) return;
-    if (!check(current, input)) {
-      shake = true;
-      setTimeout(() => finish('wrong'), 350);
-      return;
-    }
-    solvedTime += (performance.now() - roundStart) / 1000;
-    const n = next();
+  function showFlash(text: string) {
+    flash = { text, id: (flash?.id ?? 0) + 1 };
+  }
+
+  function advance() {
+    const n = next(solved);
     if (n === null) {
-      round++;
-      current = null;
       finish('complete');
       return;
     }
     current = n;
-    round++;
     input = '';
     roundStart = performance.now();
-    now = roundStart;
+  }
+
+  function submit() {
+    if (!input || current === null) return;
+
+    if (check(current, input)) {
+      solveTime += (performance.now() - roundStart) / 1000;
+      solved++;
+      if (clock.kind === 'total' && clock.bonus) {
+        adjust += clock.bonus;
+        showFlash(`+${clock.bonus}s`);
+      }
+      advance();
+      return;
+    }
+
+    misses++;
+    shake = true;
+    if (onWrong.kind === 'end') {
+      setTimeout(() => finish('wrong'), 350);
+      return;
+    }
+    // penalty: lose time on a countdown, gain time on a stopwatch
+    adjust += clock.kind === 'stopwatch' ? onWrong.seconds : -onWrong.seconds;
+    showFlash(`${clock.kind === 'stopwatch' ? '+' : '−'}${onWrong.seconds}s`);
+    setTimeout(() => {
+      shake = false;
+      if (done) return;
+      if (onWrong.skip) advance();
+      else input = '';
+    }, 350);
   }
 
   function press(key: string) {
@@ -88,7 +140,7 @@
     let raf = 0;
     const tick = () => {
       now = performance.now();
-      if (!done && !shake && now - roundStart >= settings.timeLimit * 1000) {
+      if (!done && remaining <= 0 && !(shake && onWrong.kind === 'end')) {
         finish('timeout');
         return;
       }
@@ -104,15 +156,22 @@
 <div class="screen">
   <header>
     <button type="button" class="quit" onclick={() => finish('quit')}>Quit</button>
-    <span class="label">
-      Round {round}{settings.roundLimit ? ` / ${settings.roundLimit}` : ''}
+    <span class="label">{label(solved)}</span>
+    <span class="time mono" class:low>
+      {#if flash}
+        {#key flash.id}
+          <span class="flash">{flash.text}</span>
+        {/key}
+      {/if}
+      {timeText}s
     </span>
-    <span class="time mono" class:low={remaining <= 5}>{Math.ceil(remaining)}s</span>
   </header>
-  <div class="bar"><div class="fill" style:transform="scaleX({fraction})"></div></div>
+  <div class="bar">
+    <div class="fill" style:transform="scaleX({Math.min(1, Math.max(0, fraction))})"></div>
+  </div>
 
   <section class="stage">
-    <div class="target mono">{current}</div>
+    <div class="target mono">{current ?? ''}</div>
     <div class="answer mono" class:shake>
       {#if input}
         <Expr value={input} /><span class="caret"></span>
@@ -141,9 +200,20 @@
   .time {
     justify-self: end;
     font-size: 15px;
+    position: relative;
   }
   .time.low {
     color: var(--danger);
+  }
+  .flash {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    animation: rise 0.9s ease-out forwards;
+    pointer-events: none;
   }
   .bar {
     height: 2px;
@@ -210,6 +280,16 @@
     }
     75% {
       transform: translateX(6px);
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-6px);
     }
   }
 </style>

@@ -1,131 +1,221 @@
 <script lang="ts">
-  import { answerFor, type Result, type Settings } from './lib/game';
-  import { addScore, boardLabel, formatTime, loadSettings, saveSettings } from './lib/storage';
-  import Expr from './lib/Expr.svelte';
+  import type { Settings } from './lib/game';
+  import {
+    BLITZ,
+    blitzRules,
+    classicRules,
+    climbRules,
+    dailyRules,
+    dateKey,
+    puzzleNumber,
+    type ModeId,
+    type Result,
+    type Rules,
+  } from './lib/modes';
+  import {
+    addScore,
+    bestScore,
+    classicBoard,
+    classicLabel,
+    dailyStreak,
+    formatTime,
+    loadDaily,
+    loadSettings,
+    saveDaily,
+    saveSettings,
+  } from './lib/storage';
   import Play from './lib/Play.svelte';
+  import GameOver from './lib/GameOver.svelte';
+  import DailyResult from './lib/DailyResult.svelte';
   import SettingsView from './lib/SettingsView.svelte';
   import ScoresView from './lib/ScoresView.svelte';
 
-  type View = 'menu' | 'play' | 'over' | 'settings' | 'scores';
+  type View = 'menu' | 'play' | 'over' | 'daily' | 'settings' | 'scores';
 
   let view = $state<View>('menu');
   let settings = $state<Settings>(loadSettings());
+  let rules = $state<Rules | null>(null);
   let result = $state<Result | null>(null);
   let rank = $state(-1);
   let gameId = $state(0);
+  let scoresTab = $state<ModeId>('daily');
 
-  function play() {
+  // re-read storage-derived values whenever we come back to the menu
+  let today = $state(dateKey());
+  let daily = $state(loadDaily());
+  let refresh = $state(0);
+  let best = $derived.by(() => {
+    void refresh;
+    return {
+      blitz: bestScore('blitz'),
+      climb: bestScore('climb'),
+      classic: bestScore(classicBoard(settings)),
+    };
+  });
+  let todayEntry = $derived(daily[today]);
+  let streak = $derived(dailyStreak(daily, today));
+
+  function goMenu() {
+    today = dateKey();
+    daily = loadDaily();
+    refresh++;
+    view = 'menu';
+  }
+
+  function start(mode: ModeId) {
+    if (mode === 'daily') {
+      today = dateKey();
+      daily = loadDaily();
+      if (daily[today]) {
+        view = 'daily';
+        return;
+      }
+      // one attempt per day: record the start so quitting can't reveal-and-retry
+      saveDaily(today, { done: false, time: 0, misses: 0 });
+      rules = dailyRules(today);
+    } else if (mode === 'blitz') rules = blitzRules();
+    else if (mode === 'climb') rules = climbRules();
+    else rules = classicRules($state.snapshot(settings));
     gameId++;
     view = 'play';
   }
 
   function end(r: Result) {
+    if (r.mode === 'daily') {
+      if (r.reason === 'complete')
+        saveDaily(today, { done: true, time: r.elapsed, misses: r.misses });
+      daily = loadDaily();
+      view = 'daily';
+      return;
+    }
     if (r.reason === 'quit') {
-      view = 'menu';
+      goMenu();
       return;
     }
     result = r;
-    rank =
-      r.rounds > 0
-        ? addScore({
-            rounds: r.rounds,
-            time: r.time,
-            date: Date.now(),
-            settings: $state.snapshot(settings),
-          })
-        : -1;
+    rank = -1;
+    if (r.solved > 0) {
+      const date = Date.now();
+      if (r.mode === 'blitz') rank = addScore('blitz', { rounds: r.solved, time: r.misses, date });
+      else if (r.mode === 'climb')
+        rank = addScore('climb', { rounds: r.solved, time: r.solveTime, date });
+      else
+        rank = addScore(classicBoard(settings), {
+          rounds: r.solved,
+          time: r.solveTime,
+          date,
+          settings: $state.snapshot(settings),
+        });
+    }
     view = 'over';
   }
 
-  function saveSettingsAndBack(s: Settings) {
-    settings = s;
-    saveSettings(s);
-    view = 'menu';
+  function openScores() {
+    scoresTab = 'daily';
+    view = 'scores';
   }
-
-  const reasonText: Record<string, string> = {
-    wrong: 'Wrong answer',
-    timeout: "Time's up",
-    complete: 'All rounds complete',
-  };
 </script>
 
 <svelte:window
   onkeydown={e => {
-    if ((view === 'menu' || view === 'over') && e.key === 'Enter') {
+    if (view === 'over' && result && e.key === 'Enter') {
       e.preventDefault();
-      play();
+      start(result.mode);
     }
   }}
 />
 
-{#if view === 'play'}
+{#if view === 'play' && rules}
   {#key gameId}
-    <Play {settings} onend={end} />
+    <Play {rules} onend={end} />
   {/key}
-{:else if view === 'settings'}
-  <SettingsView {settings} onsave={saveSettingsAndBack} oncancel={() => (view = 'menu')} />
-{:else if view === 'scores'}
-  <ScoresView {settings} onback={() => (view = 'menu')} />
 {:else if view === 'over' && result}
-  <div class="screen">
-    <div class="screen-body center">
-      <p class="label">{reasonText[result.reason]}</p>
-      <div class="big mono">{result.rounds}</div>
-      <p class="sub">
-        {result.rounds === 1 ? 'round' : 'rounds'}
-        {#if result.rounds > 0}
-          · {formatTime(result.time)} · {(result.time / result.rounds).toFixed(1)}s avg
-        {/if}
-      </p>
-      {#if rank === 0}
-        <p class="badge">New best</p>
-      {:else if rank > 0}
-        <p class="badge">#{rank + 1} on the board</p>
-      {/if}
-
-      {#if result.reason !== 'complete' && result.lastNumber !== null}
-        <dl>
-          <div>
-            <dt>Answer</dt>
-            <dd class="mono">
-              {result.lastNumber} = <Expr value={answerFor(result.lastNumber)} />
-            </dd>
-          </div>
-          {#if result.lastInput}
-            <div>
-              <dt>You</dt>
-              <dd class="mono wrong"><Expr value={result.lastInput} /></dd>
-            </div>
-          {/if}
-        </dl>
-      {/if}
-    </div>
-    <footer class="screen-footer">
-      <button type="button" class="btn" onclick={() => (view = 'menu')}>Menu</button>
-      <button type="button" class="btn btn-primary" onclick={play}>Play again</button>
-    </footer>
-  </div>
+  <GameOver {result} {rank} onmenu={goMenu} onagain={() => result && start(result.mode)} />
+{:else if view === 'daily'}
+  <DailyResult date={today} entry={daily[today]} {streak} onmenu={goMenu} />
+{:else if view === 'settings'}
+  <SettingsView
+    {settings}
+    onsave={s => {
+      settings = s;
+      saveSettings(s);
+      goMenu();
+    }}
+    oncancel={goMenu}
+  />
+{:else if view === 'scores'}
+  <ScoresView {settings} tab={scoresTab} onback={goMenu} />
 {:else}
   <div class="screen">
-    <div class="screen-body center">
-      <h1>Factor</h1>
-      <p class="sub">Break each number into prime powers.</p>
-      <p class="example mono">360 = <Expr value="2^3*3^2*5" /></p>
-    </div>
-    <p class="config label">{boardLabel(settings)}</p>
-    <footer class="screen-footer stack">
-      <button type="button" class="btn btn-primary" onclick={play}>Play</button>
-      <div class="pair">
-        <button type="button" class="btn" onclick={() => (view = 'settings')}>Settings</button>
-        <button type="button" class="btn" onclick={() => (view = 'scores')}>Scores</button>
+    <div class="screen-body">
+      <div class="title">
+        <h1>Factor</h1>
+        <p class="sub">Break each number into prime powers.</p>
       </div>
+
+      <ul class="modes">
+        <li>
+          <button type="button" onclick={() => start('daily')}>
+            <span class="name">Daily <span class="tag mono">#{puzzleNumber(today)}</span></span>
+            <span class="desc">Same 10 numbers for everyone today</span>
+            <span class="stat mono">
+              {#if todayEntry?.done}
+                {formatTime(todayEntry.time)}
+              {:else if todayEntry}
+                Unfinished
+              {:else}
+                Play
+              {/if}
+              {#if streak > 0}<small>{streak} day streak</small>{/if}
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" onclick={() => start('blitz')}>
+            <span class="name">Blitz</span>
+            <span class="desc"
+              >{BLITZ.seconds}s. +{BLITZ.bonus}s right, −{BLITZ.penalty}s wrong</span
+            >
+            <span class="stat mono">
+              {best.blitz ? best.blitz.rounds : '—'}<small>best</small>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" onclick={() => start('climb')}>
+            <span class="name">Climb</span>
+            <span class="desc">Bigger numbers, less time. One mistake ends it</span>
+            <span class="stat mono">
+              {best.climb ? best.climb.rounds : '—'}<small>best level</small>
+            </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" onclick={() => start('classic')}>
+            <span class="name">Classic</span>
+            <span class="desc">{classicLabel(settings)}</span>
+            <span class="stat mono">
+              {best.classic ? best.classic.rounds : '—'}<small>best</small>
+            </span>
+          </button>
+        </li>
+      </ul>
+    </div>
+    <footer class="screen-footer">
+      <button type="button" class="btn" onclick={openScores}>Scores</button>
+      <button type="button" class="btn" onclick={() => (view = 'settings')}>Settings</button>
     </footer>
   </div>
 {/if}
 
 <style>
-  .center {
+  .screen-body {
+    display: flex;
+    flex-direction: column;
+  }
+  .title {
+    flex: 1;
+    min-height: 140px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -143,70 +233,52 @@
     color: var(--muted);
     font-size: 15px;
   }
-  .example {
-    margin: 32px 0 0;
-    font-size: 20px;
-  }
-  .config {
-    text-align: center;
+  .modes {
+    list-style: none;
     margin: 0;
-    text-transform: none;
-    letter-spacing: 0;
-    font-size: 13px;
-  }
-  .stack {
-    flex-direction: column;
-  }
-  .stack > * {
-    flex: none;
-  }
-  .pair {
-    display: flex;
-    gap: 8px;
-  }
-  .pair > * {
-    flex: 1;
-  }
-  .big {
-    font-size: 88px;
-    font-weight: 600;
-    line-height: 1;
-    margin-top: 12px;
-    letter-spacing: -0.03em;
-  }
-  .badge {
-    margin: 16px 0 0;
-    padding: 4px 10px;
-    border: 1px solid var(--faint);
-    border-radius: 999px;
-    font-size: 13px;
-  }
-  dl {
-    margin: 40px 0 0;
-    width: 100%;
+    padding: 0;
     border-top: 1px solid var(--faint);
   }
-  dl > div {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
-    padding: 12px 0;
+  .modes button {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 'name stat' 'desc stat';
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+    padding: 14px 4px;
+    text-align: left;
     border-bottom: 1px solid var(--faint);
   }
-  dt {
+  .modes button:active {
+    background: var(--key);
+  }
+  .name {
+    grid-area: name;
+    font-size: 17px;
+    font-weight: 500;
+  }
+  .tag {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+    margin-left: 4px;
+  }
+  .desc {
+    grid-area: desc;
     color: var(--muted);
     font-size: 13px;
   }
-  dd {
-    margin: 0;
-    font-size: 18px;
-    overflow-wrap: anywhere;
+  .stat {
+    grid-area: stat;
     text-align: right;
+    font-size: 17px;
   }
-  .wrong {
-    color: var(--danger);
-    text-decoration: line-through;
-    text-decoration-thickness: 1px;
+  .stat small {
+    display: block;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: 12px;
   }
 </style>

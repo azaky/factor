@@ -141,13 +141,3 @@ export function sanitize(s: Partial<Settings>): Settings {
       s.roundLimit === null || s.roundLimit === undefined ? null : int(s.roundLimit, 10, 1, 10000),
   };
 }
-
-export type EndReason = 'wrong' | 'timeout' | 'complete' | 'quit';
-
-export interface Result {
-  reason: EndReason;
-  rounds: number;
-  time: number; // seconds spent on solved rounds
-  lastNumber: number | null;
-  lastInput: string;
-}
