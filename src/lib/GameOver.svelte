@@ -20,13 +20,13 @@
   let caption = $derived(
     result.mode === 'blitz'
       ? 'Blitz'
-      : result.mode === 'climb'
-        ? `Climb · ${reasonText[result.reason]}`
+      : result.mode === 'survival'
+        ? `Survival · ${reasonText[result.reason]}`
         : reasonText[result.reason]
   );
 
   let unit = $derived(
-    result.mode !== 'climb' ? 'solved' : result.solved === 1 ? 'level cleared' : 'levels cleared'
+    result.mode !== 'survival' ? 'solved' : result.solved === 1 ? 'level cleared' : 'levels cleared'
   );
 
   let detail = $derived.by(() => {

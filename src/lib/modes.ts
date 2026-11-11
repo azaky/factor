@@ -3,7 +3,7 @@
  */
 import { isPrime, numberSource, rng, type Settings } from './game';
 
-export type ModeId = 'daily' | 'blitz' | 'climb' | 'classic';
+export type ModeId = 'daily' | 'blitz' | 'survival' | 'classic';
 
 export type Clock =
   | { kind: 'round'; seconds: (solved: number) => number } // countdown per number
@@ -50,7 +50,7 @@ function between(rand: () => number, lo: number, hi: number): number {
 }
 
 /**
- * Difficulty curve shared by Climb, Blitz and Daily. Level 0 is 10–100,
+ * Difficulty curve shared by Survival, Blitz and Daily. Level 0 is 10–100,
  * and every 10 levels adds a digit (level 10 ≈ 100–1000, 20 ≈ 1000–10000).
  * Large primes are hard to prove, so above two digits they are rerolled
  * most of the time.
@@ -105,19 +105,19 @@ export function blitzRules(): Rules {
   };
 }
 
-// ---------- Climb ----------
+// ---------- Survival ----------
 
 /** Seconds allowed at a given level: 30s, shrinking to 15s by level 30. */
-export function climbSeconds(level: number): number {
+export function survivalSeconds(level: number): number {
   return Math.max(15, 30 - level * 0.5);
 }
 
-export function climbRules(): Rules {
+export function survivalRules(): Rules {
   const rand = rng(randomSeed());
   return {
-    mode: 'climb',
+    mode: 'survival',
     next: solved => numberAt(rand, solved),
-    clock: { kind: 'round', seconds: climbSeconds },
+    clock: { kind: 'round', seconds: survivalSeconds },
     onWrong: { kind: 'end' },
     total: null,
     label: solved => `Level ${solved + 1}`,

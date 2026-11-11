@@ -4,7 +4,7 @@
     BLITZ,
     blitzRules,
     classicRules,
-    climbRules,
+    survivalRules,
     dailyRules,
     dateKey,
     puzzleNumber,
@@ -48,7 +48,7 @@
     void refresh;
     return {
       blitz: bestScore('blitz'),
-      climb: bestScore('climb'),
+      survival: bestScore('survival'),
       classic: bestScore(classicBoard(settings)),
     };
   });
@@ -74,7 +74,7 @@
       saveDaily(today, { done: false, time: 0, misses: 0 });
       rules = dailyRules(today);
     } else if (mode === 'blitz') rules = blitzRules();
-    else if (mode === 'climb') rules = climbRules();
+    else if (mode === 'survival') rules = survivalRules();
     else rules = classicRules($state.snapshot(settings));
     gameId++;
     view = 'play';
@@ -97,8 +97,8 @@
     if (r.solved > 0) {
       const date = Date.now();
       if (r.mode === 'blitz') rank = addScore('blitz', { rounds: r.solved, time: r.misses, date });
-      else if (r.mode === 'climb')
-        rank = addScore('climb', { rounds: r.solved, time: r.solveTime, date });
+      else if (r.mode === 'survival')
+        rank = addScore('survival', { rounds: r.solved, time: r.solveTime, date });
       else
         rank = addScore(classicBoard(settings), {
           rounds: r.solved,
@@ -182,11 +182,11 @@
           </button>
         </li>
         <li>
-          <button type="button" onclick={() => start('climb')}>
-            <span class="name">Climb</span>
+          <button type="button" onclick={() => start('survival')}>
+            <span class="name">Survival</span>
             <span class="desc">Bigger numbers, less time. One mistake ends it</span>
             <span class="stat mono">
-              {best.climb ? best.climb.rounds : '—'}<small>best level</small>
+              {best.survival ? best.survival.rounds : '—'}<small>best level</small>
             </span>
           </button>
         </li>

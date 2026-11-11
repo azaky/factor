@@ -27,7 +27,7 @@ A web-based factorization game where players must quickly enter the prime factor
 - Each correct answer adds 2s; a wrong answer costs 5s and moves on to the next number
 - Two-digit numbers at first, then three digits
 
-### Climb
+### Survival
 
 - Each level adds difficulty: numbers grow by one digit every 10 levels (10–100 → 100–1000 → …)
 - Time per number shrinks from 30s to 15s by level 30
@@ -121,10 +121,10 @@ The project uses GitHub Actions for automated deployment:
 src/
 ├── lib/
 │   ├── game.ts               # Factorization, validation, seeded number source, settings
-│   ├── modes.ts              # Rules for Daily, Blitz, Climb and Classic; difficulty curve
+│   ├── modes.ts              # Rules for Daily, Blitz, Survival and Classic; difficulty curve
 │   ├── storage.ts            # Settings + high scores (localStorage)
 │   ├── Play.svelte           # Game screen; runs any mode's rules
-│   ├── GameOver.svelte       # Result screen for Blitz, Climb and Classic
+│   ├── GameOver.svelte       # Result screen for Blitz, Survival and Classic
 │   ├── DailyResult.svelte    # Daily result, streak, answers, share
 │   ├── Keypad.svelte         # On-screen keypad
 │   ├── Expr.svelte           # Renders 2^3*5 as 2³ × 5
@@ -140,7 +140,7 @@ src/
 - On-screen keypad, or the physical keyboard: digits, `*` (or `x`), `^`, Backspace, Enter
 - Esc quits a running game; Enter plays again from the game-over screen
 
-Blitz and Climb each have one high-score board. Classic keeps a separate board for each combination of settings.
+Blitz and Survival each have one high-score board. Classic keeps a separate board for each combination of settings.
 
 ## License
 

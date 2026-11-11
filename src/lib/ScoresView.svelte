@@ -24,7 +24,7 @@
   const tabs: { id: ModeId; label: string }[] = [
     { id: 'daily', label: 'Daily' },
     { id: 'blitz', label: 'Blitz' },
-    { id: 'climb', label: 'Climb' },
+    { id: 'survival', label: 'Survival' },
     { id: 'classic', label: 'Classic' },
   ];
 
@@ -46,7 +46,7 @@
       ? 'Fastest days'
       : tab === 'blitz'
         ? 'Most solved in one run'
-        : tab === 'climb'
+        : tab === 'survival'
           ? 'Highest level reached'
           : classicLabel(settings)
   );

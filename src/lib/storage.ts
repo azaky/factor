@@ -2,7 +2,7 @@ import { DEFAULT_SETTINGS, sanitize, type Settings } from './game';
 import { dateKey } from './modes';
 
 export interface Score {
-  rounds: number; // solved numbers (Blitz/Classic) or level reached (Climb)
+  rounds: number; // solved numbers (Blitz/Classic) or level reached (Survival)
   time: number; // seconds; tie-breaker, lower is better
   date: number;
   settings?: Settings; // Classic only
