@@ -77,7 +77,8 @@
   }
 
   function submit() {
-    if (!input || current === null) return;
+    // Incomplete input (empty, or ending in * or ^) is a mistype, not a wrong answer.
+    if (!input || /[*^]$/.test(input) || current === null) return;
 
     if (check(current, input)) {
       solveTime += (performance.now() - roundStart) / 1000;
