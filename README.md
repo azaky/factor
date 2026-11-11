@@ -23,7 +23,7 @@ A web-based factorization game where players must quickly enter the prime factor
 ### Random Mode
 
 - Random numbers within a configurable range
-- Deterministic randomness using seeds for repeatable games
+- Optional fixed seed for repeatable games (otherwise a new seed each game)
 - Can be endless (sudden death) or have round limits
 - Configurable between any two numbers (e.g., 1000-9999)
 
@@ -37,7 +37,7 @@ Score is based on:
 
 ## Features
 
-- **Mobile-Optimized**: Touch-friendly keypad with numbers, \*, ^, backspace, and enter
+- **Fits the screen**: The game screen fills the viewport (no scrolling) on phones and desktop
 - **High Scores**: Local storage saves top 10 scores per game mode
 - **Configurable Settings**:
   - Game mode (sequential/random)
@@ -50,13 +50,10 @@ Score is based on:
 
 ## Technology Stack
 
-- **Svelte**: Frontend framework for reactive UI
-- **Vite**: Build tool and dev server
-- **Tailwind CSS**: Utility-first CSS framework
-- **TypeScript**: Type safety and better development experience
-- **ESLint & Prettier**: Code quality and formatting
-- **GitHub Actions**: Automated deployment
-- **localStorage**: High score persistence
+- **Svelte 5** + **TypeScript**, built with **Vite**
+- Plain CSS (no framework), light and dark themes via `prefers-color-scheme`
+- **localStorage** for settings and high scores
+- **GitHub Actions** deploys to GitHub Pages
 
 ## Getting Started
 
@@ -120,66 +117,24 @@ The project uses GitHub Actions for automated deployment:
 ```
 src/
 ├── lib/
-│   ├── gameLogic.ts      # Core game logic and validation (TypeScript)
-│   ├── highScores.ts     # High score management (TypeScript)
-│   ├── GameConfig.svelte # Game settings component
-│   ├── Keypad.svelte     # Mobile-optimized input keypad
-│   └── HighScores.svelte # High scores display
-├── App.svelte            # Main application component
-├── main.js              # Application entry point
-└── app.css              # Global styles (Tailwind + custom)
-
-.github/
-└── workflows/
-    └── deploy.yml        # GitHub Actions deployment workflow
-
-Configuration:
-├── tsconfig.json         # TypeScript configuration
-├── tailwind.config.js    # Tailwind CSS configuration
-├── vite.config.js        # Vite build configuration
-├── .eslintrc.json        # ESLint configuration
-└── .prettierrc           # Prettier configuration
+│   ├── game.ts               # Factorization, validation, seeded number source, settings
+│   ├── storage.ts            # Settings + high scores (localStorage)
+│   ├── Play.svelte           # Game screen (timer, input, keypad)
+│   ├── Keypad.svelte         # On-screen keypad
+│   ├── Expr.svelte           # Renders 2^3*5 as 2³ × 5
+│   ├── SettingsView.svelte   # Settings screen
+│   └── ScoresView.svelte     # High scores screen
+├── App.svelte                # Screen routing, menu, game-over
+├── main.ts                   # Entry point
+└── app.css                   # Design tokens and shared layout styles
 ```
 
-## Game Logic
+## Controls
 
-### Prime Factorization Validation
+- On-screen keypad, or the physical keyboard: digits, `*` (or `x`), `^`, Backspace, Enter
+- Esc quits a running game; Enter starts a new game from the menu or game-over screen
 
-- Validates user input format (e.g., "2^3\*5^2")
-- Checks that all factors are prime numbers
-- Compares against correct prime factorization
-- Supports various input formats
-
-### Random Number Generation
-
-- Uses Linear Congruential Generator for deterministic randomness
-- Seed-based generation allows for repeatable game sequences
-- Configurable range support
-
-## Development
-
-### Adding New Features
-
-1. Game logic goes in `src/lib/gameLogic.js`
-2. UI components in `src/lib/`
-3. Update main app state in `App.svelte`
-
-### Testing
-
-The game includes comprehensive factorization validation that handles:
-
-- Prime number verification
-- Input parsing and validation
-- Edge cases (number 1, single primes, etc.)
-
-## Future Enhancements
-
-- Online leaderboards
-- Multiplayer modes
-- Achievement system
-- Practice mode with hints
-- Statistics tracking
-- Sound effects and animations
+High scores are kept per combination of mode, range, time limit and round limit.
 
 ## License
 

@@ -1,23 +1,23 @@
 # Factor Game - Cursor Rules
 
 ## Project Overview
-Factor is a web-based prime factorization game built with Svelte, Vite, and Tailwind CSS. Players must quickly enter prime factorizations of given numbers within time limits.
+Factor is a web-based prime factorization game built with Svelte 5, Vite, and plain CSS. Players must quickly enter prime factorizations of given numbers within time limits.
 
 ## Architecture Guidelines
 
 ### File Structure
-- `src/lib/gameLogic.js` - Core game mechanics, validation, and scoring
-- `src/lib/highScores.js` - Local storage high score management  
+- `src/lib/game.ts` - Factorization, answer validation, seeded number generation, settings
+- `src/lib/storage.ts` - localStorage for settings and high scores
 - `src/lib/*.svelte` - Reusable UI components
 - `src/App.svelte` - Main application state and routing
-- `src/app.css` - Tailwind CSS imports only
+- `src/app.css` - Design tokens (light/dark) and shared screen/button styles
 
 ### Code Style
 - Use ES6+ features and modern JavaScript
 - Prefer functional programming patterns
-- Use Svelte reactive statements ($:) for derived state
+- Use Svelte 5 runes ($state, $derived, $props)
 - Keep components focused on single responsibilities
-- Use Tailwind utility classes for styling
+- Minimal monochrome styling; component-scoped <style> blocks using tokens from app.css
 
 ### Game Logic Requirements
 - All factorization validation must be mathematically correct
@@ -36,10 +36,10 @@ Factor is a web-based prime factorization game built with Svelte, Vite, and Tail
 ## Development Rules
 
 ### Component Guidelines
-1. **Props**: Always define export let for component props
-2. **Events**: Use createEventDispatcher for parent communication
+1. **Props**: Declare with $props()
+2. **Events**: Pass callback props (e.g. onend, onsave)
 3. **Stores**: Avoid complex store patterns, use local state management
-4. **Styling**: Use Tailwind classes, avoid custom CSS unless necessary
+4. **Styling**: Keep it minimal; no gradients, emoji or decorative color
 
 ### Game Logic Rules
 1. **Validation**: Never trust user input, validate all factorizations
