@@ -35,7 +35,7 @@
 
 <div class="screen">
   <header>
-    <h2>Settings</h2>
+    <h2>Classic settings</h2>
     <button type="button" class="reset" onclick={reset}>Reset</button>
   </header>
 
