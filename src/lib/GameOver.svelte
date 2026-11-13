@@ -35,10 +35,8 @@
     return `${formatTime(result.solveTime)} · ${(result.solveTime / result.solved).toFixed(1)}s avg`;
   });
 
-  // Blitz skips on a miss, so there is no single "last number" to explain.
-  let showAnswer = $derived(
-    result.mode !== 'blitz' && result.reason !== 'complete' && result.lastNumber !== null
-  );
+  // The number on screen when the game ended (in Blitz, the one left unsolved at time-up).
+  let showAnswer = $derived(result.reason !== 'complete' && result.lastNumber !== null);
 </script>
 
 <div class="screen">

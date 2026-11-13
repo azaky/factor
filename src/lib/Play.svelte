@@ -16,7 +16,7 @@
   let input = $state('');
   let shake = $state(false);
   let flash = $state<{ text: string; id: number } | null>(null);
-  let previous = $state<{ n: number; missed: boolean; id: number } | null>(null);
+  let previous = $state<{ n: number; id: number } | null>(null);
 
   const gameStart = performance.now();
   let roundStart = gameStart;
@@ -66,8 +66,10 @@
     flash = { text, id: (flash?.id ?? 0) + 1 };
   }
 
-  function remember(n: number, missed: boolean) {
-    if (rules.showPrevious) previous = { n, missed, id: (previous?.id ?? 0) + 1 };
+  /** After a miss, show what the skipped number was; a correct answer clears it. */
+  function remember(n: number | null, missed: boolean) {
+    if (!rules.showPrevious) return;
+    previous = missed && n !== null ? { n, id: (previous?.id ?? 0) + 1 } : null;
   }
 
   function advance() {
@@ -110,7 +112,7 @@
       shake = false;
       if (done) return;
       if (onWrong.skip) {
-        if (current !== null) remember(current, true);
+        remember(current, true);
         advance();
       } else input = '';
     }, 350);
@@ -185,9 +187,9 @@
         {#if previous}
           {#key previous.id}
             <span class="fade"
-              >{previous.n} = <Expr value={answerFor(previous.n)} />{#if previous.missed}<span
-                  class="missed">missed</span
-                >{/if}</span
+              >{previous.n} = <Expr value={answerFor(previous.n)} /><span class="missed"
+                >missed</span
+              ></span
             >
           {/key}
         {/if}
