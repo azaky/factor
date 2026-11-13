@@ -4,6 +4,7 @@
   import { DAILY, dailyNumbers, puzzleNumber } from './modes';
   import { formatTime, type DailyEntry } from './storage';
   import Expr from './Expr.svelte';
+  import { inputLock } from './lock.svelte';
 
   let {
     date,
@@ -16,6 +17,7 @@
   let num = $derived(puzzleNumber(date));
   let done = $derived(entry?.done ?? false);
   let copied = $state(false);
+  const lock = inputLock();
 
   let now = $state(Date.now());
   let untilNext = $derived.by(() => {
@@ -89,8 +91,8 @@
     </ol>
   </div>
   <footer class="screen-footer">
-    <button type="button" class="btn" onclick={onmenu}>Menu</button>
-    <button type="button" class="btn btn-primary" onclick={share}>
+    <button type="button" class="btn" disabled={!lock.ready} onclick={onmenu}>Menu</button>
+    <button type="button" class="btn btn-primary" disabled={!lock.ready} onclick={share}>
       {copied ? 'Copied' : 'Share'}
     </button>
   </footer>

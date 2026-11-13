@@ -98,6 +98,13 @@ input:focus-visible {
   border: 1px solid var(--faint);
   font-size: 16px;
   font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+/* Result screens briefly disable their buttons; fade them in when ready. */
+.btn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .btn:active {

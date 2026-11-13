@@ -116,15 +116,6 @@
   }
 </script>
 
-<svelte:window
-  onkeydown={e => {
-    if (view === 'over' && result && e.key === 'Enter') {
-      e.preventDefault();
-      start(result.mode);
-    }
-  }}
-/>
-
 {#if view === 'play' && rules}
   {#key gameId}
     <Play {rules} onend={end} />

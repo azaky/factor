@@ -3,6 +3,7 @@
   import type { Result } from './modes';
   import { formatTime } from './storage';
   import Expr from './Expr.svelte';
+  import { inputLock } from './lock.svelte';
 
   let {
     result,
@@ -10,6 +11,14 @@
     onmenu,
     onagain,
   }: { result: Result; rank: number; onmenu: () => void; onagain: () => void } = $props();
+
+  const lock = inputLock();
+
+  function onkeydown(e: KeyboardEvent) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault(); // also stops Enter from activating a focused button
+    if (lock.ready) onagain();
+  }
 
   const reasonText: Record<string, string> = {
     wrong: 'Wrong answer',
@@ -39,6 +48,8 @@
   let showAnswer = $derived(result.reason !== 'complete' && result.lastNumber !== null);
 </script>
 
+<svelte:window {onkeydown} />
+
 <div class="screen">
   <div class="screen-body center">
     <p class="label">{caption}</p>
@@ -62,8 +73,10 @@
     {/if}
   </div>
   <footer class="screen-footer">
-    <button type="button" class="btn" onclick={onmenu}>Menu</button>
-    <button type="button" class="btn btn-primary" onclick={onagain}>Play again</button>
+    <button type="button" class="btn" disabled={!lock.ready} onclick={onmenu}>Menu</button>
+    <button type="button" class="btn btn-primary" disabled={!lock.ready} onclick={onagain}
+      >Play again</button
+    >
   </footer>
 </div>
 
