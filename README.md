@@ -38,6 +38,15 @@ A web-based factorization game where players must quickly enter the prime factor
 - Configurable: sequential or random order, number range, seconds per round, round limit and an optional fixed seed
 - A wrong answer or a timeout ends the game
 
+### Practice
+
+- Untimed and endless, with Easy (2-digit), Medium (3-digit) and Hard (4-digit) numbers
+- Factor step by step: enter any prime powers that divide the number (e.g. `3^2` for 432) and the number is divided by them, so 432 becomes 48 while `432 = 3² ×` is kept above it
+- Finish by entering the last factor; the remaining number has to be typed even when it's prime
+- A rejected step says why (not prime, or doesn't divide) without giving the answer away
+- Hint gives a random prime that divides the current number; Give up shows the full answer
+- No scores
+
 ## Features
 
 - **Fits the screen**: The game screen fills the viewport (no scrolling) on phones and desktop
@@ -121,6 +130,9 @@ The project uses GitHub Actions for automated deployment:
 src/
 ├── lib/
 │   ├── game.ts               # Factorization, validation, seeded number source, settings
+│   ├── practice.ts           # Practice: number choice, step checking, hints
+│   ├── Practice.svelte       # Practice screen
+│   ├── PracticeDone.svelte   # Practice finished / gave-up screen
 │   ├── modes.ts              # Rules for Daily, Blitz, Survival and Classic; difficulty curve
 │   ├── storage.ts            # Settings + high scores (localStorage)
 │   ├── Play.svelte           # Game screen; runs any mode's rules

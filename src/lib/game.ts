@@ -50,7 +50,12 @@ export function factorize(n: number): Factors {
 /** Canonical answer string, e.g. 360 -> "2^3*3^2*5". */
 export function answerFor(n: number): string {
   if (n === 1) return '1';
-  return [...factorize(n)]
+  return formatFactors(factorize(n));
+}
+
+/** Factor map as an input-style string in ascending order, e.g. "2^3*3^2*5". */
+export function formatFactors(factors: Factors): string {
+  return [...factors]
     .sort((a, b) => a[0] - b[0])
     .map(([p, e]) => (e === 1 ? `${p}` : `${p}^${e}`))
     .join('*');
@@ -140,4 +145,37 @@ export function sanitize(s: Partial<Settings>): Settings {
     roundLimit:
       s.roundLimit === null || s.roundLimit === undefined ? null : int(s.roundLimit, 10, 1, 10000),
   };
+}
+
+// ---------- Answer input ----------
+
+/** Applies one keypad key to the answer being typed; invalid keys leave it unchanged. */
+export function editInput(input: string, key: string): string {
+  if (key === 'Backspace') return input.slice(0, -1);
+  if (/^\d$/.test(key)) {
+    // no leading zeros in a term
+    const term = input.split(/[*^]/).pop() ?? '';
+    if (key === '0' && term === '') return input;
+    return input.length < 40 ? input + key : input;
+  }
+  if (key === '*' || key === '^') {
+    const last = input.at(-1);
+    if (!last || last === '*' || last === '^') return input;
+    // only one exponent per term
+    if (key === '^' && /\^\d+$/.test(input)) return input;
+    return input + key;
+  }
+  return input;
+}
+
+/** Empty input, or input ending in * or ^, is a mistype rather than an answer. */
+export function isComplete(input: string): boolean {
+  return input !== '' && !/[*^]$/.test(input);
+}
+
+/** Maps a physical key press to a keypad key, or null if the game doesn't use it. */
+export function keypadKey(e: KeyboardEvent): string | null {
+  if (e.metaKey || e.ctrlKey || e.altKey) return null;
+  const key = e.key === 'x' || e.key === 'X' || e.key === '.' ? '*' : e.key;
+  return /^[\d*^]$/.test(key) || ['Enter', 'Backspace', 'Escape'].includes(key) ? key : null;
 }
