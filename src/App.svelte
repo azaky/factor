@@ -29,8 +29,9 @@
   import DailyResult from './lib/DailyResult.svelte';
   import SettingsView from './lib/SettingsView.svelte';
   import ScoresView from './lib/ScoresView.svelte';
+  import Practice from './lib/Practice.svelte';
 
-  type View = 'menu' | 'play' | 'over' | 'daily' | 'settings' | 'scores';
+  type View = 'menu' | 'play' | 'over' | 'daily' | 'practice' | 'settings' | 'scores';
 
   let view = $state<View>('menu');
   let settings = $state<Settings>(loadSettings());
@@ -124,6 +125,8 @@
   <GameOver {result} {rank} onmenu={goMenu} onagain={() => result && start(result.mode)} />
 {:else if view === 'daily'}
   <DailyResult date={today} entry={daily[today]} {streak} onmenu={goMenu} />
+{:else if view === 'practice'}
+  <Practice onmenu={goMenu} />
 {:else if view === 'settings'}
   <SettingsView
     {settings}
@@ -188,6 +191,12 @@
             <span class="stat mono">
               {best.classic ? best.classic.rounds : '—'}<small>best</small>
             </span>
+          </button>
+        </li>
+        <li>
+          <button type="button" onclick={() => (view = 'practice')}>
+            <span class="name">Practice</span>
+            <span class="desc">Untimed, step by step, with hints</span>
           </button>
         </li>
       </ul>

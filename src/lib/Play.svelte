@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { answerFor, check } from './game';
+  import { answerFor, check, editInput, isComplete, keypadKey } from './game';
   import type { EndReason, Result, Rules } from './modes';
   import Expr from './Expr.svelte';
   import Keypad from './Keypad.svelte';
@@ -83,8 +83,7 @@
   }
 
   function submit() {
-    // Incomplete input (empty, or ending in * or ^) is a mistype, not a wrong answer.
-    if (!input || /[*^]$/.test(input) || current === null) return;
+    if (!isComplete(input) || current === null) return;
 
     if (check(current, input)) {
       solveTime += (performance.now() - roundStart) / 1000;
@@ -120,30 +119,15 @@
   function press(key: string) {
     if (done || shake) return;
     if (key === 'Enter') submit();
-    else if (key === 'Backspace') input = input.slice(0, -1);
     else if (key === 'Escape') finish('quit');
-    else if (/^\d$/.test(key)) {
-      // no leading zeros in a term
-      const term = input.split(/[*^]/).pop() ?? '';
-      if (key === '0' && term === '') return;
-      if (input.length < 40) input += key;
-    } else if (key === '*' || key === '^') {
-      const last = input.at(-1);
-      if (!last || last === '*' || last === '^') return;
-      // only one exponent per term
-      if (key === '^' && /\^\d+$/.test(input)) return;
-      input += key;
-    }
+    else input = editInput(input, key);
   }
 
   function onkeydown(e: KeyboardEvent) {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    let key = e.key;
-    if (key === 'x' || key === 'X' || key === '.') key = '*';
-    if (/^[\d*^]$/.test(key) || ['Enter', 'Backspace', 'Escape'].includes(key)) {
-      e.preventDefault();
-      press(key);
-    }
+    const key = keypadKey(e);
+    if (!key) return;
+    e.preventDefault();
+    press(key);
   }
 
   onMount(() => {

@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS, sanitize, type Settings } from './game';
 import { dateKey } from './modes';
+import type { Level } from './practice';
 
 export interface Score {
   rounds: number; // solved numbers (Blitz/Classic) or level reached (Survival)
@@ -11,6 +12,7 @@ export interface Score {
 const SETTINGS_KEY = 'factor:settings';
 const SCORES_KEY = 'factor:scores';
 const DAILY_KEY = 'factor:daily';
+const PRACTICE_KEY = 'factor:practice-level';
 const MAX_SCORES = 10;
 
 function read<T>(key: string, fallback: T): T {
@@ -38,6 +40,17 @@ export function loadSettings(): Settings {
 
 export function saveSettings(s: Settings): void {
   write(SETTINGS_KEY, s);
+}
+
+// ---------- Practice ----------
+
+export function loadPracticeLevel(): Level {
+  const level = read<string>(PRACTICE_KEY, 'medium');
+  return level === 'easy' || level === 'hard' ? level : 'medium';
+}
+
+export function savePracticeLevel(level: Level): void {
+  write(PRACTICE_KEY, level);
 }
 
 // ---------- Score boards ----------
