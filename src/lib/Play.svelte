@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { check } from './game';
+  import { answerFor, check } from './game';
   import type { EndReason, Result, Rules } from './modes';
   import Expr from './Expr.svelte';
   import Keypad from './Keypad.svelte';
@@ -16,6 +16,7 @@
   let input = $state('');
   let shake = $state(false);
   let flash = $state<{ text: string; id: number } | null>(null);
+  let previous = $state<{ n: number; missed: boolean; id: number } | null>(null);
 
   const gameStart = performance.now();
   let roundStart = gameStart;
@@ -65,6 +66,10 @@
     flash = { text, id: (flash?.id ?? 0) + 1 };
   }
 
+  function remember(n: number, missed: boolean) {
+    if (rules.showPrevious) previous = { n, missed, id: (previous?.id ?? 0) + 1 };
+  }
+
   function advance() {
     const n = next(solved);
     if (n === null) {
@@ -83,6 +88,7 @@
     if (check(current, input)) {
       solveTime += (performance.now() - roundStart) / 1000;
       solved++;
+      remember(current, false);
       if (clock.kind === 'total' && clock.bonus) {
         adjust += clock.bonus;
         showFlash(`+${clock.bonus}s`);
@@ -103,8 +109,10 @@
     setTimeout(() => {
       shake = false;
       if (done) return;
-      if (onWrong.skip) advance();
-      else input = '';
+      if (onWrong.skip) {
+        if (current !== null) remember(current, true);
+        advance();
+      } else input = '';
     }, 350);
   }
 
@@ -172,6 +180,19 @@
   </div>
 
   <section class="stage">
+    {#if rules.showPrevious}
+      <div class="previous mono">
+        {#if previous}
+          {#key previous.id}
+            <span class="fade"
+              >{previous.n} = <Expr value={answerFor(previous.n)} />{#if previous.missed}<span
+                  class="missed">missed</span
+                >{/if}</span
+            >
+          {/key}
+        {/if}
+      </div>
+    {/if}
     <div class="target mono">{current ?? ''}</div>
     <div class="answer mono" class:shake>
       {#if input}
@@ -236,6 +257,28 @@
     align-items: center;
     gap: clamp(16px, 4dvh, 40px);
     padding: 16px 0;
+    position: relative;
+  }
+  /* Pinned to the top of the stage, away from the current number. */
+  .previous {
+    position: absolute;
+    top: 14px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .fade {
+    display: inline-block;
+    animation: settle 2.5s ease-out forwards;
+  }
+  .missed {
+    margin-left: 8px;
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--danger);
   }
   .target {
     font-size: clamp(48px, 16vw, 80px);
@@ -281,6 +324,16 @@
     }
     75% {
       transform: translateX(6px);
+    }
+  }
+  @keyframes settle {
+    0% {
+      opacity: 1;
+      color: var(--fg);
+    }
+    100% {
+      opacity: 0.55;
+      color: var(--muted);
     }
   }
   @keyframes rise {

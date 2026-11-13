@@ -24,6 +24,8 @@ export interface Rules {
   total: number | null;
   /** Header label, e.g. "Level 4". */
   label: (solved: number) => string;
+  /** Show the previous number's factorization above the current one. */
+  showPrevious?: boolean;
 }
 
 export type EndReason = 'wrong' | 'timeout' | 'complete' | 'quit';
@@ -102,6 +104,7 @@ export function blitzRules(): Rules {
     onWrong: { kind: 'penalty', seconds: BLITZ.penalty, skip: true },
     total: null,
     label: solved => `${solved} solved`,
+    showPrevious: true,
   };
 }
 
