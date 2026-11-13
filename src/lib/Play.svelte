@@ -58,7 +58,6 @@
       solveTime,
       elapsed: (performance.now() - gameStart) / 1000 + (clock.kind === 'stopwatch' ? adjust : 0),
       lastNumber: current,
-      lastInput: input,
     });
   }
 

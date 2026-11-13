@@ -58,12 +58,6 @@
           <dt>Answer</dt>
           <dd class="mono">{result.lastNumber} = <Expr value={answerFor(result.lastNumber)} /></dd>
         </div>
-        {#if result.lastInput}
-          <div>
-            <dt>You</dt>
-            <dd class="mono wrong"><Expr value={result.lastInput} /></dd>
-          </div>
-        {/if}
       </dl>
     {/if}
   </div>
@@ -122,10 +116,5 @@
     font-size: 18px;
     overflow-wrap: anywhere;
     text-align: right;
-  }
-  .wrong {
-    color: var(--danger);
-    text-decoration: line-through;
-    text-decoration-thickness: 1px;
   }
 </style>

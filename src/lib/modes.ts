@@ -40,7 +40,6 @@ export interface Result {
   /** Wall-clock seconds plus penalties (daily score). */
   elapsed: number;
   lastNumber: number | null;
-  lastInput: string;
 }
 
 function randomSeed(): number {
