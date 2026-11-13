@@ -200,7 +200,7 @@
       {#if input}
         <Expr value={input} /><span class="caret"></span>
       {:else}
-        <span class="caret"></span><span class="placeholder">e.g. 2^3*5</span>
+        <span class="caret"></span><span class="placeholder">e.g. <Expr value="2^3*5" /></span>
       {/if}
     </div>
   </section>
